@@ -1,7 +1,7 @@
 import PaymentGateway from "./PaymentGateway"
 import type { User } from "../../GlobalObjects/Objects_DataTypes"
 interface CardInputProps {
-    doPayment: (user : User | null, bought : number) => void
+    doPayment: (user : User | null, packId : string) => Promise<void>
     GetUser : () => User | null
 }
 const CardInput = (props:CardInputProps) =>{

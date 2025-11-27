@@ -20,8 +20,8 @@ const Feed = (props: FeedProps) => {
     <div className="container my-4">
       <h2 className="mb-3 fw-bold">Streams Recomendados</h2>
       <div className="row">
-        {props.streams.map((stream : Stream) => (
-          <StreamCard stream = {stream}/>
+        {props.streams.map((stream : Stream, index: number) => (
+          <StreamCard key={`stream-${stream.id}-${index}`} stream = {stream}/>
         ))}
       </div>
     </div>

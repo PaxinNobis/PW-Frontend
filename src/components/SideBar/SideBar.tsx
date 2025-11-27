@@ -15,17 +15,17 @@ const SideBar = (props : SideBarProps) => {
         <div className="container-fluid">
             <h5 className="TextBox">Canales que sigues</h5>
             {
-                streamsfollowed.map((stream : Stream) => {
+                streamsfollowed.map((stream : Stream, index: number) => {
                     return(
-                        <StreamBox stream = {stream}></StreamBox>
+                        <StreamBox key={`followed-${stream.id}-${index}`} stream = {stream}></StreamBox>
                     )
                 })
             }
             <h5 className="TextBox">Canales que podrían interesarte</h5>
             {
-                props.streams.map((stream : Stream) => {
+                props.streams.map((stream : Stream, index: number) => {
                     return(
-                        <StreamBox stream = {stream}></StreamBox>
+                        <StreamBox key={`recommended-${stream.id}-${index}`} stream = {stream}></StreamBox>
                     )
                 })
             }

@@ -6,7 +6,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import "../../GlobalObjects/Animations.css"
 import "../../GlobalObjects/Global.css"
 interface SigninProps {
-	doSignIn : (name : string, email : string, pass: string) => void
+	doSignIn : (name : string, email : string, pass: string) => Promise<number>
 }
 const Login = (props: SigninProps) => {
 
@@ -26,19 +26,20 @@ const Login = (props: SigninProps) => {
         SetPass(e.currentTarget.value)
     }
 
-    const handleSigin = () => {
+    const handleSigin = async () => {
+        SetError("");
         try {
-            props.doSignIn(name,email,pass)
-			navigate("/Home")
-			window.location.reload()
+            await props.doSignIn(name, email, pass);
+            navigate("/Home");
+            window.location.reload();
         } catch (err) {
             if (err instanceof Error) {
-				SetError(err.message);
-			} else {
-				SetError("Error desconocido durante el login");
-        	}
-    	}
-	}
+                SetError(err.message);
+            } else {
+                SetError("Error desconocido durante el registro");
+            }
+        }
+    }
 	return (
 		<div className="container-fluid">
 		<div className="row justify-content-center mt-5">

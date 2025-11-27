@@ -14,11 +14,12 @@ import "./CarouselSlide.css"
 // Props
 interface CarouselSlideProps{
     slide : Stream
+    index?: number
 }
 
 const CarouselSlide = (props : CarouselSlideProps) => {
     return(
-        <div key={props.slide.id} className={`carousel-item ${props.slide.id === 1 ? "active" : ""}`}>
+        <div className={`carousel-item ${props.index === 0 ? "active" : ""}`}>
             <Link to={`/streaming/${props.slide.user.name}`}>
                 <div className="card d-flex flex-row align-items-center border-0">
                         <div>

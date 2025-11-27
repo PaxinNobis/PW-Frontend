@@ -6,7 +6,7 @@ import "../../GlobalObjects/Animations.css"
 import "../../GlobalObjects/Global.css"
 
 interface LoginProps {
-	doLogIn : (email : string, pass: string) => void
+	doLogIn : (email : string, pass: string) => Promise<number>
 }
 const Login = (props: LoginProps) => {
 
@@ -22,17 +22,18 @@ const Login = (props: LoginProps) => {
         SetPass(e.currentTarget.value)
     }
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
+        SetError("");
         try {
-            props.doLogIn(email,pass)
-			navigate("/Home")
-			window.location.reload()
+            await props.doLogIn(email, pass);
+            navigate("/Home");
+            window.location.reload();
         } catch (err) {
             if (err instanceof Error) {
-				SetError(err.message);
-			} else {
-				SetError("Error desconocido durante el login");
-        	}
+                SetError(err.message);
+            } else {
+                SetError("Error desconocido durante el login");
+            }
         }
     }
 	return (

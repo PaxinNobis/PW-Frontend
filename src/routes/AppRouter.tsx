@@ -39,10 +39,10 @@ interface AppRouterProps {
 	packs: Pack[]
 	users: User[]
 	user: User | null
-	doFollowing : (user: User) => void
-	doPayment: (user : User | null, bought : number) => void
-	doLogIn : (email : string, pass: string) => void
-	doSignIn : (name : string, email : string, pass: string) => void
+	doFollowing : (user: User) => Promise<void>
+	doPayment: (user : User | null, packId : string) => Promise<void>
+	doLogIn : (email : string, pass: string) => Promise<number>
+	doSignIn : (name : string, email : string, pass: string) => Promise<number>
 	doLogOut : () => void
 	doChatting : (message : Message, stream : Stream) => void
 	GetUser : () => User | null
@@ -70,7 +70,7 @@ return (
 					<Route path="/signin" element={<Signin doSignIn={props.doSignIn}/>}/>
 					<Route path="/payment" element={<CardInput GetUser={props.GetUser} doPayment={props.doPayment}/>}/>
 
-					<Route path="/profile/:name" element={<Profile doFollowing={props.doFollowing} following = {props.following} users = {props.users} GetUser={props.GetUser}/>}/>
+					<Route path="/profile/:identifier" element={<Profile doFollowing={props.doFollowing} following = {props.following} users = {props.users} GetUser={props.GetUser}/>}/>
 					<Route path="/panelcreador" element={<PrivateRoute><PanelControl/></PrivateRoute>}/>
 					<Route path="/gestion-regalos" element={<PrivateRoute><GestionRegalos/></PrivateRoute>}/>
 								

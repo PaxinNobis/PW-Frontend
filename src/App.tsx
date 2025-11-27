@@ -10,6 +10,22 @@ import type { Message } from "./GlobalObjects/Objects_DataTypes";
 import type { Level } from "./GlobalObjects/Objects_DataTypes";
 import type { Medal } from "./GlobalObjects/Objects_DataTypes";
 
+// Importar servicios del backend
+import { getAllStreams, getAllTags, getAllGames } from "./services/data.service";
+import { getFollowing, toggleFollow } from "./services/user.service";
+import { getCoinPacks, createCheckoutSession } from "./services/payment.service";
+import { loginUser as apiLoginUser, signupUser as apiSignupUser, logoutUser as apiLogoutUser } from "./services/auth.service";
+
+// Importar nuevos servicios
+import * as viewerService from "./services/viewer.service";
+import * as pointsService from "./services/points.service";
+import * as medalService from "./services/medal.service";
+import * as profileService from "./services/profile.service";
+import * as notificationService from "./services/notification.service";
+import * as clipService from "./services/clip.service";
+import * as friendService from "./services/friend.service";
+import * as streamerService from "./services/streamer.service";
+
 const App = () => {
 const [user, setUser] = useState<User | null>(null);
 const [streams, setStreams] = useState<Stream[]>([]);
@@ -25,16 +41,34 @@ const [users, setUsers] = useState <User[]>([]);
 //Para guardar el usuario
 const USER_STORAGE_KEY = "streaming_user";
 
-const FollowFunction = (user : User) =>{
-    for (let i = 0; i < following.length; i++) {
-        if (following[i].id == user.id){
-            const newfollowing = [...following]
-            newfollowing.splice(i, 1) 
-            setFollowing(newfollowing)
-            return
-        }   
+const FollowFunction = async (user : User) => {
+    try {
+        // Intentar con el backend
+        const result = await toggleFollow(user.id.toString());
+        
+        if (result.isFollowing) {
+            // Ahora sigue al usuario
+            setFollowing([...following, user]);
+            console.log("Ahora sigues a", user.name);
+        } else {
+            // Dejó de seguir
+            const newfollowing = following.filter(f => f.id !== user.id);
+            setFollowing(newfollowing);
+            console.log("Dejaste de seguir a", user.name);
+        }
+    } catch (error) {
+        console.log("Backend no disponible, usando follow local");
+        // Fallback a lógica local
+        for (let i = 0; i < following.length; i++) {
+            if (following[i].id == user.id){
+                const newfollowing = [...following]
+                newfollowing.splice(i, 1) 
+                setFollowing(newfollowing)
+                return
+            }   
+        }
+        setFollowing([...following, user])
     }
-    setFollowing([...following, user])
 }
 
 const ChatFunction = (message: Message, stream: Stream) => {
@@ -87,77 +121,233 @@ const ReloadUser = () => {
         }
     }
 };
-const PayingFunction = (user : User | null, bought : number) => {
+const PayingFunction = async (user : User | null, packId : string) => {
     if (!user){
-        return
+        console.error("Usuario no autenticado");
+        return;
     }
-    setUsers(prevUsers => prevUsers.map((u : User) => (u.id === user?.id? { ...u, coins: u.coins + bought } : u)))
-
-    setUser(prevUser => prevUser ? { ...prevUser, coins: prevUser.coins + bought } : null);
+    
+    try {
+        // Crear sesión de pago con Stripe
+        const session = await createCheckoutSession({ coinPackId: packId });
+        console.log("Sesión de pago creada, redirigiendo a Stripe...");
+        
+        // Redirigir a Stripe Checkout
+        window.location.href = session.url;
+        
+        // Nota: El webhook de Stripe actualizará las monedas automáticamente
+        // cuando el pago se complete
+    } catch (error) {
+        console.error("Error al crear sesión de pago:", error);
+        throw error;
+    }
 }
 //TODO: Si alguien está registrado no aparezca botón en about us
-const LogInFunction = (email : string, pass : string) => {
+const LogInFunction = async (email : string, pass : string) => {
     if (email == ""  || pass == ""){
-            throw new Error("Por favor, rellena todos los campos");
+        throw new Error("Por favor, rellena todos los campos");
     }
-    for (const user of users) {
-        if (email == user.email && pass == user.password){
-            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-            return 1;
+    
+    try {
+        // Intentar login con el backend
+        const user = await apiLoginUser({ email, password: pass });
+        
+        // Obtener perfil completo del usuario
+        let profileData = null;
+        try {
+            const { getUserProfile } = await import('./services/profile.service');
+            profileData = await getUserProfile(user.id);
+        } catch (profileError) {
+            console.log("No se pudo cargar el perfil completo, usando datos básicos");
         }
+        
+        // Convertir usuario del backend al formato local
+        const localUser: User = {
+            id: user.id, // UUID del backend
+            name: profileData?.name || user.name,
+            email: user.email,
+            password: pass,
+            coins: user.coins || 0,
+            pfp: profileData?.pfp || "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-70x70.png",
+            online: profileData?.online || false,
+            bio: profileData?.bio || "",
+            followed: [],
+            followers: [],
+            friends: [],
+            pointsrecieved: [],
+            messagessent: [],
+            medalsrecieved: [],
+            streaminghours: profileData?.stats?.streamingHours || 0,
+            streamerlevel: { id: 1, level: "Astronauta Novato", min_followers: 0, max_followers: 100, min_hours: 0, max_hours: 50 },
+            medalsforviewers: [],
+            clips: [],
+            xlink: profileData?.socialLinks?.x || "",
+            youtubelink: profileData?.socialLinks?.youtube || "",
+            instagramlink: profileData?.socialLinks?.instagram || "",
+            tiktoklink: profileData?.socialLinks?.tiktok || "",
+            discordlink: profileData?.socialLinks?.discord || ""
+        };
+        
+        setUser(localUser);
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(localUser));
+        
+        // Cargar datos del usuario autenticado
+        try {
+            // Cargar following
+            const followingData = await getFollowing();
+            const convertedFollowing = followingData.map((f: any) => ({
+                id: f.id, // UUID del backend
+                name: f.name,
+                email: f.email,
+                password: "",
+                coins: 0,
+                pfp: "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-70x70.png",
+                online: f.stream?.isLive || false,
+                bio: "",
+                followed: [],
+                followers: [],
+                friends: [],
+                pointsrecieved: [],
+                messagessent: [],
+                medalsrecieved: [],
+                streaminghours: 0,
+                streamerlevel: { id: 1, level: "Astronauta Novato", min_followers: 0, max_followers: 100, min_hours: 0, max_hours: 50 },
+                medalsforviewers: [],
+                clips: [],
+                xlink: "",
+                youtubelink: "",
+                instagramlink: "",
+                tiktoklink: "",
+                discordlink: ""
+            }));
+            setFollowing(convertedFollowing);
+            
+            // Recargar packs si aún no están cargados
+            if (packs.length === 0) {
+                const packsData = await getCoinPacks();
+                const convertedPacks = packsData.map((p: any) => ({
+                    id: parseInt(p.id) || 0,
+                    name: p.nombre,
+                    value: p.valor,
+                    initialprice: p.en_soles,
+                    finalprice: p.en_soles,
+                    discount: 0
+                }));
+                setPacks(convertedPacks);
+            }
+        } catch (err) {
+            console.log("Error al cargar datos del usuario:", err);
+        }
+        
+        console.log("Login exitoso con backend");
+        return 1;
+    } catch (backendError) {
+        console.log("Backend no disponible, intentando login local");
+        // Fallback a login local
+        for (const user of users) {
+            if (email == user.email && pass == user.password){
+                localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+                return 1;
+            }
+        }
+        throw new Error("Usuario o contraseña incorrectos");
     }
-    throw new Error("Usuario o contraseña incorrectos");
 }
 
 const LogOutFunction = () => {
+    apiLogoutUser(); // Limpia el token del backend
     localStorage.removeItem(USER_STORAGE_KEY);
+    setUser(null);
+    console.log("Logout exitoso");
 }
 
-const SignInFunction = (name : string, email : string, pass : string) => {
+const SignInFunction = async (name : string, email : string, pass : string) => {
     if (name == "" || email == "" || pass == ""){
         throw new Error("Por favor, rellena todos los campos");
     }
     if (pass.length < 6){
         throw new Error("La contraseña debe tener como mínimo 6 caracteres");
     }
-    for (const user of users) {
-        if (email == user.email){
-            throw new Error("Email ya en uso");
+    
+    try {
+        // Intentar registro con el backend
+        const user = await apiSignupUser({ name, email, password: pass });
+        
+        // Convertir usuario del backend al formato local
+        const localUser: User = {
+            id: user.id, // UUID del backend
+            name: user.name,
+            email: user.email,
+            password: pass,
+            coins: user.coins || 0,
+            pfp: "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-70x70.png",
+            online: false,
+            bio: "",
+            followed: [],
+            followers: [],
+            friends: [],
+            pointsrecieved: [],
+            messagessent: [],
+            medalsrecieved: [],
+            streaminghours: 0,
+            streamerlevel: { id: 1, level: "Astronauta Novato", min_followers: 0, max_followers: 100, min_hours: 0, max_hours: 50 },
+            medalsforviewers: [],
+            clips: [],
+            xlink: "",
+            youtubelink: "",
+            instagramlink: "",
+            tiktoklink: "",
+            discordlink: ""
+        };
+        
+        setUser(localUser);
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(localUser));
+        return 1;
+    } catch (backendError) {
+        console.log("Backend no disponible, intentando registro local");
+        // Fallback a registro local
+        for (const user of users) {
+            if (email == user.email){
+                throw new Error("Email ya en uso");
+            }
         }
+        const newuser: User = {
+            id: `local-${Date.now()}`, // ID temporal para usuarios locales
+            name: name,
+            email: email,
+            password: pass,
+            coins: 0,
+            pfp: "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-70x70.png",
+            online: false,
+            bio: "",
+            followed: [],
+            followers: [],
+            friends: [],
+            pointsrecieved: [],
+            messagessent: [],
+            medalsrecieved: [],
+            streaminghours: 0,
+            streamerlevel: {
+                id: 1,
+                level: "Astronauta Novato",
+                min_followers: 0,
+                max_followers: 100,
+                min_hours: 0,
+                max_hours: 50
+            },
+            medalsforviewers: [],
+            clips: [],
+            xlink: "",
+            youtubelink: "",
+            instagramlink: "",
+            tiktoklink: "",
+            discordlink: ""
+        };
+        setUsers([...users, newuser]);
+        setUser(newuser);
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(newuser));
+        return 1;
     }
-    const newuser = {
-        "id": users.length,
-        "name": name,
-        "email": email,
-        "password": pass,
-        "coins": 0,
-        "pfp" : "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-70x70.png",
-        "online" : false,
-        "bio" : "",
-        "followed" : [],
-        "followers" : [],
-        "friends" : [],
-        "pointsrecieved" : [],
-        "messagessent" : [],
-        "medalsrecieved" : [],
-        "streaminghours" : 0,
-        "streamerlevel" : {
-            "id": 1,
-            "level": "Astronauta Novato",
-            "min_followers": 0,
-            "max_followers": 100,
-            "min_hours": 0,
-            "max_hours": 50
-        },
-        "medalsforviewers" : [],
-        "clips" : [],
-        "xlink": "",
-        "youtubelink": "",
-        "instagramlink": "",
-        "tiktoklink": "",
-        "discordlink": ""
-    }
-    setUsers([...users, newuser])
 }
 
 const GetUser = () => {
@@ -177,23 +367,153 @@ const GetUser = () => {
 useEffect(() => {
     const fetchData = async () => {
         try {
+            // Obtener usuario actual
             const posibleuser = GetUser();
             setUser(posibleuser);
-            const response1 = await fetch("./data/streams.json");
-            const data1 = await response1.json();
-            setStreams(data1);
-            const response2 = await fetch("./data/tags.json");
-            const data2 = await response2.json();
-            setTags(data2);
-            const response3 = await fetch("./data/games.json");
-            const data3 = await response3.json();
-            setGames(data3);
-            const response4 = await fetch("./data/following.json");
-            const data4 = await response4.json();
-            setFollowing(data4);
-            const response5 = await fetch("./data/packs.json");
-            const data5 = await response5.json();
-            setPacks(data5);
+
+            // Cargar datos del backend
+            try {
+                const [streamsData, tagsData, gamesData, packsData] = await Promise.all([
+                    getAllStreams(),
+                    getAllTags(),
+                    getAllGames(),
+                    getCoinPacks()
+                ]);
+
+                // Validar que streamsData sea un array
+                const streams = Array.isArray(streamsData) ? streamsData : (streamsData as any)?.streams || [];
+                const tags = Array.isArray(tagsData) ? tagsData : (tagsData as any)?.tags || [];
+                const games = Array.isArray(gamesData) ? gamesData : (gamesData as any)?.games || [];
+                const packs = Array.isArray(packsData) ? packsData : (packsData as any)?.packs || [];
+
+                console.log(`Datos cargados del backend: ${streams.length} streams, ${tags.length} tags, ${games.length} juegos, ${packs.length} paquetes`);
+
+                // Convertir datos del backend al formato local
+                const convertedStreams = streams.map((s: any) => ({
+                    id: parseInt(s.id) || 0,
+                    user: {
+                        id: s.streamer.id, // UUID del backend
+                        name: s.streamer.name,
+                        email: s.streamer.email,
+                        password: "",
+                        coins: 0,
+                        pfp: "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-70x70.png",
+                        online: s.isLive,
+                        bio: "",
+                        followed: [],
+                        followers: [],
+                        friends: [],
+                        pointsrecieved: [],
+                        messagessent: [],
+                        medalsrecieved: [],
+                        streaminghours: 0,
+                        streamerlevel: { id: 1, level: "Astronauta Novato", min_followers: 0, max_followers: 100, min_hours: 0, max_hours: 50 },
+                        medalsforviewers: [],
+                        clips: [],
+                        xlink: "",
+                        youtubelink: "",
+                        instagramlink: "",
+                        tiktoklink: "",
+                        discordlink: ""
+                    },
+                    game: {
+                        name: s.game.name,
+                        photo: s.game.photo,
+                        spectators: 0,
+                        followers: 0,
+                        tags: s.tags.map((t: any) => ({ id: parseInt(t.id) || 0, name: t.name }))
+                    },
+                    thumbnail: s.thumbnail,
+                    title: s.title,
+                    viewersnumber: s.viewers,
+                    viewersid: [],
+                    messagelist: []
+                }));
+
+                const convertedTags = tags.map((t: any) => ({
+                    id: parseInt(t.id) || 0,
+                    name: t.name
+                }));
+
+                const convertedGames = games.map((g: any) => ({
+                    name: g.name,
+                    photo: g.photo,
+                    spectators: g._count?.streams || 0,
+                    followers: 0,
+                    tags: g.tags.map((t: any) => ({ id: parseInt(t.id) || 0, name: t.name }))
+                }));
+
+                const convertedPacks = packs.map((p: any) => ({
+                    id: parseInt(p.id) || 0,
+                    name: p.nombre,
+                    value: p.valor,
+                    initialprice: p.en_soles,
+                    finalprice: p.en_soles,
+                    discount: 0
+                }));
+
+                setStreams(convertedStreams);
+                setTags(convertedTags);
+                setGames(convertedGames);
+                setPacks(convertedPacks);
+
+                // Cargar following si hay usuario autenticado
+                if (posibleuser) {
+                    try {
+                        const followingData = await getFollowing();
+                        const convertedFollowing = followingData.map((f: any) => ({
+                            id: f.id, // UUID del backend
+                            name: f.name,
+                            email: f.email,
+                            password: "",
+                            coins: 0,
+                            pfp: "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-70x70.png",
+                            online: f.stream?.isLive || false,
+                            bio: "",
+                            followed: [],
+                            followers: [],
+                            friends: [],
+                            pointsrecieved: [],
+                            messagessent: [],
+                            medalsrecieved: [],
+                            streaminghours: 0,
+                            streamerlevel: { id: 1, level: "Astronauta Novato", min_followers: 0, max_followers: 100, min_hours: 0, max_hours: 50 },
+                            medalsforviewers: [],
+                            clips: [],
+                            xlink: "",
+                            youtubelink: "",
+                            instagramlink: "",
+                            tiktoklink: "",
+                            discordlink: ""
+                        }));
+                        setFollowing(convertedFollowing);
+                    } catch (err) {
+                        console.log("Usuario no autenticado, no se cargó following");
+                    }
+                }
+
+            } catch (backendError) {
+                console.warn("Error al cargar desde backend, usando datos locales");
+                // Fallback a datos locales si el backend falla
+                const response1 = await fetch("./data/streams.json");
+                const data1 = await response1.json();
+                setStreams(data1);
+                const response2 = await fetch("./data/tags.json");
+                const data2 = await response2.json();
+                setTags(data2);
+                const response3 = await fetch("./data/games.json");
+                const data3 = await response3.json();
+                setGames(data3);
+                const response4 = await fetch("./data/following.json");
+                const data4 = await response4.json();
+                setFollowing(data4);
+                const response5 = await fetch("./data/packs.json");
+                const data5 = await response5.json();
+                setPacks(data5);
+                console.log("Datos locales cargados como fallback");
+            }
+
+            // Cargar datos locales que no están en el backend aún
             const response6 = await fetch("./data/users.json");
             const data6 = await response6.json();
             setUsers(data6);
@@ -203,17 +523,9 @@ useEffect(() => {
             const response8 = await fetch("./data/medals.json");
             const data8 = await response8.json();
             setMedals(data8);
-            console.log("Streams loaded:", data1);
-            console.log("Tags loaded:", data2);
-            console.log("Games loaded:", data3);
-            console.log("Following loaded:", data4);
-            console.log("Packs loaded:", data5);
-            console.log("Users loaded:", data6);
-            console.log("Levels loaded:", data7);
-            console.log("Medals loaded:", data8);
-            console.log("User loaded:", user);
+
         } catch (error) {
-            console.error("Error al leer JSON:", error);
+            console.error("Error al cargar datos:", error);
         }
     };
     fetchData();

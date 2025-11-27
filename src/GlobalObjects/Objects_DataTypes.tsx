@@ -55,7 +55,7 @@ export type Level = {
     max_hours : number
 }
 export type User = {
-    id: number;
+    id: string;
     name: string;
     email: string;
     password: string;

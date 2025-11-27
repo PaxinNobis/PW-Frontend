@@ -17,7 +17,7 @@ return (
 			{
 			props.packs.map((pack : Pack) => {
                     return(
-						<>
+						<div key={pack.id}>
 							<li><hr className="dropdown-divider"/></li>
 							{/*El w-100 fue lo que expandió, junto con el dropdown menu classname en el css*/}
 							<li className="d-flex dropdown-item-text align-items-center justify-content-between w-100">
@@ -31,7 +31,7 @@ return (
 								</div>
 								
 							</li>
-						</>
+						</div>
                     )})
 			}
 			<li><hr className="dropdown-divider"/></li>

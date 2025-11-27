@@ -17,8 +17,8 @@ const ExploreTags = (props: ExploreTagsProps) => {
 		<div className="container my-5">
 			<h1 className="mb-4">Explora por tags</h1>
 			<div className="row">
-				{props.tags.map((tag) => (
-				<CategoryCard tag = {tag}></CategoryCard>
+				{props.tags.map((tag, index) => (
+				<CategoryCard key={`tag-${tag.id}-${index}`} tag = {tag}></CategoryCard>
 				))}
 			</div>
 		</div>

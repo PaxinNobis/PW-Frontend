@@ -1,6 +1,6 @@
 // pages/Profile.tsx
 // Página de perfil del usuario (ruta protegida)
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import SocialLink from '../StreamingComponents/SocialLink';
 import EditProfileButton from './EditProfileButton';
@@ -8,21 +8,53 @@ import FollowButton from '../StreamingComponents/FollowButton';
 import './Profile.css';
 import type { User } from '../../GlobalObjects/Objects_DataTypes';
 import Videos from './Videos';
-import { useState } from 'react';
+import { useProfile } from '../../hooks/useNewFeatures';
 
 interface ProfileProps{
     GetUser : () => User | null
     users : User[]
     following : User[]
-    doFollowing : (user: User) => void
+    doFollowing : (user: User) => Promise<void>
 }
 const Profile = (props : ProfileProps) => {
-    const { name } = useParams<{ name: string }>();
-    const profiletoshow = props.users.find((user : User)=>{
-            return user.name == name
-        })
-    const [Issighting, SetIssighting] = useState<boolean>(true)
-    const user = props.GetUser()
+    const { identifier } = useParams<{ identifier: string }>();
+    
+    // Usar el identifier (puede ser nombre, email o UUID)
+    const userId = identifier;
+    
+    // Cargar perfil completo del backend
+    const { profile: backendProfile, loading } = useProfile(userId);
+    
+    // Usar perfil del backend directamente
+    const profiletoshow = backendProfile ? {
+        id: backendProfile.id, // UUID del backend
+        name: backendProfile.name,
+        email: backendProfile.email,
+        pfp: backendProfile.pfp,
+        bio: backendProfile.bio,
+        online: backendProfile.online,
+        password: '',
+        coins: 0,
+        followers: backendProfile.stats?.followers ? Array(backendProfile.stats.followers).fill({}) : [],
+        followed: backendProfile.stats?.following ? Array(backendProfile.stats.following).fill({}) : [],
+        friends: [],
+        pointsrecieved: [],
+        messagessent: [],
+        medalsrecieved: [],
+        streaminghours: backendProfile.stats?.streamingHours || 0,
+        streamerlevel: { id: 1, level: "Astronauta Novato", min_followers: 0, max_followers: 100, min_hours: 0, max_hours: 50 },
+        medalsforviewers: [],
+        clips: [],
+        xlink: backendProfile.socialLinks?.x || '',
+        youtubelink: backendProfile.socialLinks?.youtube || '',
+        instagramlink: backendProfile.socialLinks?.instagram || '',
+        tiktoklink: backendProfile.socialLinks?.tiktok || '',
+        discordlink: backendProfile.socialLinks?.discord || ''
+    } as User : null;
+    
+    const [Issighting, SetIssighting] = useState<boolean>(true);
+    const user = props.GetUser();
+    
     useEffect(() => {
         SetIssighting(true)
         if (!user || !profiletoshow){
@@ -32,15 +64,41 @@ const Profile = (props : ProfileProps) => {
             SetIssighting(false)
         }
     },[profiletoshow, user]);
-    if (!profiletoshow){
-    return (
-        <div className="container mt-5">
-            <div className="alert alert-warning">
-            No existe tal usuario
+    
+    // Mostrar loading mientras carga
+    if (loading) {
+        return (
+            <div className="container mt-5">
+                <div className="alert alert-info">
+                    <div className="spinner-border spinner-border-sm me-2" role="status">
+                        <span className="visually-hidden">Cargando...</span>
+                    </div>
+                    Cargando perfil...
+                </div>
             </div>
-        </div>
         );
     }
+
+    if (!profiletoshow){
+        if (!loading) {
+            return (
+                <div className="container mt-5">
+                    <div className="alert alert-warning">
+                        <h4>⚠️ Usuario no encontrado</h4>
+                        <p>No se encontró el usuario "{identifier}" en el backend.</p>
+                        <hr />
+                        <p className="mb-0">
+                            <small className="text-muted">
+                                Asegúrate de que el usuario existe y está registrado en la base de datos.
+                            </small>
+                        </p>
+                    </div>
+                </div>
+            );
+        }
+        return null; // Mientras carga
+    }
+    
     const isFollowing = () =>{
         let following = false
         for (let i = 0; i < props.following.length; i++) {
@@ -57,8 +115,8 @@ return (
                 <div className="card-body">
                     <div className="card-body p-4 d-flex pb-5 border-bottom">
                         <img className="Profile_Img" src={profiletoshow.pfp} alt="Img"/>
-                        <div className='d-flex bd-highlight flex-column'>
-                            <div className="mx-5">
+                        <div className='d-flex bd-highlight flex-column flex-grow-1'>
+                            <div className="mx-5 pe-5">
                                 <div className="mb-3">
                                     <h1> {profiletoshow.name} <i className="bi bi-patch-check-fill"></i></h1>
                                     <h3> {profiletoshow.email}</h3>

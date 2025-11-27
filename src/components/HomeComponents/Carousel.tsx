@@ -25,8 +25,8 @@ const Carousel = (props: CarouselProps) => {
 
                 <div id="Carousel" className="carousel slide border-0" data-bs-ride="carousel">
                     <div className="carousel-inner">
-                    {props.slides.map((slide) => (
-                        <CarouselSlide slide = {slide}></CarouselSlide>
+                    {props.slides.map((slide, index) => (
+                        <CarouselSlide key={`carousel-${slide.id}-${index}`} slide={slide} index={index}></CarouselSlide>
                     ))}
                     </div>
                 </div>

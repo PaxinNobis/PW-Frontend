@@ -1,95 +1,62 @@
-// services/auth.service.ts
-// Servicio que simula llamadas a una API de autenticación usando localStorage
+// Servicio de autenticación - Conectado al backend
 
-import type { User, LoginCredentials, SignupData, UserRole } from '../types/auth';
+import type { User, LoginCredentials, SignupData, AuthResponse } from '../types/auth';
+import { API_CONFIG, setAuthToken, removeAuthToken, getAuthHeaders } from '../config/api.config';
+import { apiPost, apiGet } from '../utils/api.utils';
 
 const USER_STORAGE_KEY = 'streaming_user';
 
 /**
- * Cuentas de prueba pre-configuradas
+ * Registrar un nuevo usuario
  */
-const DEMO_ACCOUNTS = [
-  {
-    email: 'espectador@gmail.com',
-    password: 'espectador123',
-    name: 'Usuario Espectador',
-    role: 'viewer' as UserRole,
-    level: 5,
-    points: 820,
-    coins: 150,
-  },
-  {
-    email: 'creador@gmail.com',
-    password: 'creador123',
-    name: 'Usuario Creador',
-    role: 'streamer' as UserRole,
-  },
-];
-
-
+export const signupUser = async (data: SignupData): Promise<User> => {
+  const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH_REGISTER}`;
+  const response = await apiPost<AuthResponse>(url, data, API_CONFIG.HEADERS);
+  
+  // Guardar token y usuario
+  setAuthToken(response.token);
+  localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.user));
+  
+  return response.user;
+};
 
 /**
- * Simula el login de un usuario
- * En producción, esto haría una petición POST a /api/login
+ * Iniciar sesión
  */
 export const loginUser = async (credentials: LoginCredentials): Promise<User> => {
-  // Validación básica
-  if (!credentials.email || !credentials.password) {
-    throw new Error('Email y contraseña son requeridos');
-  }
+  const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH_LOGIN}`;
+  const response = await apiPost<AuthResponse>(url, credentials, API_CONFIG.HEADERS);
   
-  if (!credentials.email.includes('@')) {
-    throw new Error('Email inválido');
-  }
+  // Guardar token y usuario
+  setAuthToken(response.token);
+  localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.user));
   
-  // Buscar cuenta de prueba
-  const demoAccount = DEMO_ACCOUNTS.find(
-    acc => acc.email.toLowerCase() === credentials.email.toLowerCase() && 
-           acc.password === credentials.password
-  );
+  return response.user;
+};
+
+/**
+ * Obtener información del usuario actual desde el servidor
+ */
+export const fetchCurrentUser = async (): Promise<User> => {
+  const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH_ME}`;
+  const user = await apiGet<User>(url, getAuthHeaders());
   
-  if (!demoAccount) {
-    throw new Error('Credenciales incorrectas');
-  }
-  
-  // Usar los datos de la cuenta de prueba
-  const user: User = {
-    id: Math.random().toString(36).substr(2, 9),
-    name: demoAccount.name,
-    email: demoAccount.email,
-    role: demoAccount.role,
-    // Añadir datos de viewer si corresponde
-    ...(demoAccount.role === 'viewer' ? {
-      level: demoAccount.level,
-      points: demoAccount.points,
-      coins: demoAccount.coins,
-    } : {}),
-  };
-  
-  // Guardar en localStorage
+  // Actualizar localStorage
   localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+  
   return user;
 };
 
 /**
- * Simula el registro de un nuevo usuario
- * Solo permite usar las cuentas de prueba pre-configuradas
- */
-export const signupUser = async (_data: SignupData): Promise<User> => {
-  throw new Error('El registro está deshabilitado. Por favor, usa una de las cuentas de prueba.');
-};
-
-/**
- * Cierra la sesión del usuario
- * En producción, podría invalidar el token en el servidor
+ * Cerrar sesión
  */
 export const logoutUser = (): void => {
+  removeAuthToken();
   localStorage.removeItem(USER_STORAGE_KEY);
 };
 
 /**
- * Obtiene el usuario actual desde localStorage
- * En producción, validaría un JWT y obtendría datos del servidor
+ * Obtener usuario actual desde localStorage (sin llamada al servidor)
  */
 export const getCurrentUser = (): User | null => {
   const userJson = localStorage.getItem(USER_STORAGE_KEY);

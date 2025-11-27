@@ -5,7 +5,7 @@ import type { User } from "../../GlobalObjects/Objects_DataTypes";
 import "./PaymentGateway.css"
 
 interface PaymentGatewayProps {
-	doPayment: (user : User | null, bought : number) => void
+	doPayment: (user : User | null, packId : string) => Promise<void>
 	GetUser : () => User | null
 }
 const PaymentGateway = (props : PaymentGatewayProps) => {
@@ -77,7 +77,19 @@ const PaymentGateway = (props : PaymentGatewayProps) => {
 			</form>
 			</div>
 			<div className="modal-footer mt-3">
-				<button type="button" className="btn btn-primary page-button" onClick={() => {props.doPayment(props.GetUser(),pack? pack.value : value)}}>Realizar Pago</button>
+				<button 
+					type="button" 
+					className="btn btn-primary page-button" 
+					onClick={async () => {
+						if (pack && pack.id) {
+							await props.doPayment(props.GetUser(), pack.id.toString());
+						} else {
+							alert("Por favor selecciona un paquete de monedas");
+						}
+					}}
+				>
+					Realizar Pago con Stripe
+				</button>
 			</div>
 			</div>
 		)
