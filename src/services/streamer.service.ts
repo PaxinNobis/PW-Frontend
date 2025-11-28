@@ -88,6 +88,16 @@ export const updateStreamingHours = async (hours: number): Promise<UpdateHoursRe
  * Obtener estadísticas del streamer
  */
 export const getStreamerStats = async (): Promise<StreamerStats> => {
-  const url = `${API_CONFIG.BASE_URL}/api/streamer/stats`;
+  const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.STREAMER_STATS}`;
   return apiGet<StreamerStats>(url, getAuthHeaders());
+};
+
+/**
+ * Obtener regalos configurados por un streamer
+ */
+import type { CustomGift } from '../types/api';
+
+export const getStreamerGifts = async (streamerId: string): Promise<{ success: boolean; gifts: CustomGift[] }> => {
+  const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.STREAMER_GIFTS(streamerId)}`;
+  return apiGet<{ success: boolean; gifts: CustomGift[] }>(url, getAuthHeaders());
 };

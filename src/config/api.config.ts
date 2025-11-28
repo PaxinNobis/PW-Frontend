@@ -7,24 +7,29 @@ export const API_CONFIG = {
     AUTH_REGISTER: '/api/auth/register',
     AUTH_LOGIN: '/api/auth/login',
     AUTH_ME: '/api/auth/me',
-    
+
     // User
     USER_FOLLOWING: '/api/user/following',
     USER_FOLLOW: (streamerId: string) => `/api/user/follow/${streamerId}`,
-    
+
     // Data
     DATA_STREAMS: '/api/data/streams',
     DATA_TAGS: '/api/data/tags',
     DATA_GAMES: '/api/data/games',
     DATA_STREAM_DETAILS: (nickname: string) => `/api/data/streams/details/${nickname}`,
     DATA_SEARCH: (query: string) => `/api/data/search/${query}`,
-    
-    // Panel
+
+    // Streamer
+    STREAMER_LEVEL: '/api/streamer/level',
+    STREAMER_LEVELS_ALL: '/api/streamer/levels/all',
+    STREAMER_HOURS: '/api/streamer/hours',
+    STREAMER_STATS: '/api/streamer/stats',
+    STREAMER_GIFTS: (streamerId: string) => `/api/streamer/${streamerId}/gifts`,
     PANEL_ANALYTICS: '/api/panel/analytics',
     PANEL_GIFTS: '/api/panel/gifts',
     PANEL_GIFT: (id: string) => `/api/panel/gifts/${id}`,
     PANEL_LOYALTY_LEVELS: '/api/panel/loyalty-levels',
-    
+
     // Payment
     PAYMENT_COIN_PACKS: '/api/payment/coin-packs',
     PAYMENT_CHECKOUT: '/api/payment/create-checkout-session',

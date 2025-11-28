@@ -54,7 +54,7 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
     }
     isConnected = true;
     console.log('WebSocket conectado');
-    
+
     // Unirse al chat con autenticación
     if (socket) {
       const joinPayload = {

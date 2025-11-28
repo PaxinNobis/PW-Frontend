@@ -9,8 +9,9 @@ import type { Stream } from "../../GlobalObjects/Objects_DataTypes"
 import "./ChatSection.css"
 
 interface ChatSectionProps {
-    GetUser : () => User | null
-    stream : Stream
+    GetUser: () => User | null
+    stream: Stream
+    doChatting: (message: Message, stream: Stream) => void
 }
 
 const MAX_MESSAGES = 200
@@ -18,9 +19,15 @@ const MAX_MESSAGES = 200
 const ChatSection = (props: ChatSectionProps) => {
     const [messages, setMessages] = useState<Message[]>(props.stream.messagelist)
     const [pointsEarned, setPointsEarned] = useState(0)
+    const [showPointsBadge, setShowPointsBadge] = useState(false)
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const messageKeysRef = useRef<Set<string>>(new Set())
     const user = props.GetUser()
+    const doChattingRef = useRef(props.doChatting)
+
+    useEffect(() => {
+        doChattingRef.current = props.doChatting
+    }, [props.doChatting])
 
     const buildMessageKey = (id?: string, createdAt?: string, fallback?: string) => {
         if (id) return id
@@ -51,7 +58,7 @@ const ChatSection = (props: ChatSectionProps) => {
             user: data.user
         }
         appendMessageIfNew(newMessage)
-        
+
         // Simular ganancia de puntos localmente
         setPointsEarned(prev => prev + 1)
     }
@@ -75,7 +82,7 @@ const ChatSection = (props: ChatSectionProps) => {
         setMessages([])
         messageKeysRef.current.clear()
         const unsubscribes: Array<() => void> = []
-        
+
         try {
             connectToChat(streamerNickname)
 
@@ -142,10 +149,15 @@ const ChatSection = (props: ChatSectionProps) => {
                     }
                 }
                 appendMessageIfNew(newMessage, msgKey)
-                
+
                 // Mostrar puntos ganados si es el usuario actual
-                if (data.message.userId === user.id && data.pointsEarned > 0) {
-                    setPointsEarned(prev => prev + data.pointsEarned)
+                if (data.message.userId === user.id) {
+                    if (data.pointsEarned > 0) {
+                        setPointsEarned(data.pointsEarned)
+                        setShowPointsBadge(true)
+                        setTimeout(() => setShowPointsBadge(false), 3000)
+                    }
+                    doChattingRef.current(newMessage, props.stream)
                 }
             }
             const unsubscribeNewMessage = onNewMessage(handleNewMessage)
@@ -176,35 +188,38 @@ const ChatSection = (props: ChatSectionProps) => {
         }
     }, [props.stream.user.name, user?.id])
 
-    return(
+    return (
         <div className="RightSide">
             <div className="ChatTitle">
-                {user ? 
-                    <ProgressBar 
-                        actual={user.messagessent?.[props.stream.user.id]?.[0] ?? 0} 
-                        max={user.medalsrecieved?.[0]?.[0].max_messages ?? 0} 
-                        topic={"mensajes"} 
-                    /> 
+                {user ?
+                    <ProgressBar
+                        actual={(() => {
+                            const entry = user.messagessent.find(m => m[1].id === props.stream.user.id);
+                            return entry ? entry[0] : 0;
+                        })()}
+                        max={100}
+                        topic={"mensajes"}
+                    />
                     : ""}
-                {pointsEarned > 0 && (
-                    <div className="badge bg-success ms-2">
+                {showPointsBadge && pointsEarned > 0 && (
+                    <div className="badge bg-success ms-2 fade-in">
                         +{pointsEarned} puntos
                     </div>
                 )}
             </div>
             <div className="RightSideScroll">
                 {
-                    messages.map((mensaje : Message, index: number) => {
-                        return(
+                    messages.map((mensaje: Message, index: number) => {
+                        return (
                             <ChatMessage key={`msg-${index}`} mensaje={mensaje} />
                         )
                     })
                 }
                 <div ref={messagesEndRef} />
             </div>
-            <ChatBar 
-                stream={props.stream} 
-                GetUser={props.GetUser} 
+            <ChatBar
+                stream={props.stream}
+                GetUser={props.GetUser}
                 streamerId={props.stream.user.id}
                 onLocalMessage={handleLocalMessage}
             />

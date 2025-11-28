@@ -12,11 +12,11 @@ const USER_STORAGE_KEY = 'streaming_user';
 export const signupUser = async (data: SignupData): Promise<User> => {
   const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH_REGISTER}`;
   const response = await apiPost<AuthResponse>(url, data, API_CONFIG.HEADERS);
-  
+
   // Guardar token y usuario
   setAuthToken(response.token);
   localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.user));
-  
+
   return response.user;
 };
 
@@ -26,11 +26,11 @@ export const signupUser = async (data: SignupData): Promise<User> => {
 export const loginUser = async (credentials: LoginCredentials): Promise<User> => {
   const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH_LOGIN}`;
   const response = await apiPost<AuthResponse>(url, credentials, API_CONFIG.HEADERS);
-  
+
   // Guardar token y usuario
   setAuthToken(response.token);
   localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(response.user));
-  
+
   return response.user;
 };
 
@@ -40,10 +40,10 @@ export const loginUser = async (credentials: LoginCredentials): Promise<User> =>
 export const fetchCurrentUser = async (): Promise<User> => {
   const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH_ME}`;
   const user = await apiGet<User>(url, getAuthHeaders());
-  
+
   // Actualizar localStorage
   localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-  
+
   return user;
 };
 
@@ -60,11 +60,11 @@ export const logoutUser = (): void => {
  */
 export const getCurrentUser = (): User | null => {
   const userJson = localStorage.getItem(USER_STORAGE_KEY);
-  
+
   if (!userJson) {
     return null;
   }
-  
+
   try {
     return JSON.parse(userJson) as User;
   } catch (error) {
