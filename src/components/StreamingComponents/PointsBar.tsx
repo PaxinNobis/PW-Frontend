@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { usePoints } from '../../hooks/useNewFeatures';
 import { getStreamerGifts } from '../../services/streamer.service';
+import { sendGift } from '../../services/panel.service';
 import type { CustomGift } from '../../types/api';
+import ConfirmationModal from '../Shared/ConfirmationModal';
 import "./PointsBar.css";
 import "../../GlobalObjects/Icons.css";
 
@@ -10,9 +12,27 @@ interface PointsBarProps {
 }
 
 const PointsBar = ({ streamerId }: PointsBarProps) => {
-    const { points, loading } = usePoints();
+    const { points, loading, reload } = usePoints();
     const [gifts, setGifts] = useState<CustomGift[]>([]);
     const [loadingGifts, setLoadingGifts] = useState(false);
+    const [sendingGift, setSendingGift] = useState<string | null>(null);
+
+    // Modal State for Confirmation
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [selectedGift, setSelectedGift] = useState<CustomGift | null>(null);
+
+    // Modal State for Alerts (Success/Error)
+    const [alertConfig, setAlertConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'success' | 'danger';
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'success'
+    });
 
     // Encontrar puntos del streamer actual
     const streamerPoints = points?.byStreamer.find(
@@ -39,6 +59,53 @@ const PointsBar = ({ streamerId }: PointsBarProps) => {
 
         fetchGifts();
     }, [streamerId]);
+
+    const handleGiftClick = (gift: CustomGift) => {
+        setSelectedGift(gift);
+        setIsConfirmOpen(true);
+    };
+
+    const showAlert = (title: string, message: string, type: 'success' | 'danger') => {
+        setAlertConfig({
+            isOpen: true,
+            title,
+            message,
+            type
+        });
+    };
+
+    const confirmSendGift = async () => {
+        if (!selectedGift || sendingGift) return;
+
+        setSendingGift(selectedGift.id);
+        try {
+            const response = await sendGift(selectedGift.id, streamerId);
+            if (response.success) {
+                showAlert('¡Regalo enviado!', `Has enviado ${selectedGift.nombre} y ganado ${response.pointsEarned} puntos.`, 'success');
+                reload(); // Actualizar puntos del usuario
+
+                // Disparar evento para actualizar monedas en el Navbar (con actualización optimista)
+                window.dispatchEvent(new CustomEvent('userCoinsUpdated', {
+                    detail: { cost: selectedGift.costo }
+                }));
+            }
+        } catch (error: any) {
+            console.error("Error sending gift:", error);
+
+            // Prioritize backend error message if available
+            let errorMessage = error.data?.error || error.data?.message || error.message || "Error al enviar el regalo";
+
+            // Simplificar mensaje de saldo insuficiente
+            if (errorMessage.includes("Saldo insuficiente")) {
+                errorMessage = "Saldo insuficiente";
+            }
+
+            showAlert('Error', errorMessage, 'danger');
+        } finally {
+            setSendingGift(null);
+            setSelectedGift(null);
+        }
+    };
 
     if (loading) {
         return (
@@ -72,7 +139,12 @@ const PointsBar = ({ streamerId }: PointsBarProps) => {
                     ) : gifts.length > 0 ? (
                         gifts.map(gift => (
                             <li key={gift.id}>
-                                <button className="dropdown-item d-flex justify-content-between align-items-center py-2" type="button">
+                                <button
+                                    className="dropdown-item d-flex justify-content-between align-items-center py-2"
+                                    type="button"
+                                    onClick={() => handleGiftClick(gift)}
+                                    disabled={!!sendingGift}
+                                >
                                     <span>{gift.nombre}</span>
                                     <div className="d-flex flex-column align-items-end ms-2">
                                         <span className="badge bg-warning text-dark rounded-pill mb-1">
@@ -90,6 +162,29 @@ const PointsBar = ({ streamerId }: PointsBarProps) => {
                     )}
                 </ul>
             </div>
+
+            {/* Modal de Confirmación */}
+            <ConfirmationModal
+                isOpen={isConfirmOpen}
+                onClose={() => setIsConfirmOpen(false)}
+                onConfirm={confirmSendGift}
+                title="Enviar Regalo"
+                message={selectedGift ? `¿Quieres enviar ${selectedGift.nombre} por ${selectedGift.costo} monedas?` : ''}
+                confirmText="Enviar"
+                confirmColor="primary"
+            />
+
+            {/* Modal de Alerta (Éxito/Error) */}
+            <ConfirmationModal
+                isOpen={alertConfig.isOpen}
+                onClose={() => setAlertConfig(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={() => setAlertConfig(prev => ({ ...prev, isOpen: false }))}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                confirmText="Aceptar"
+                confirmColor={alertConfig.type === 'danger' ? 'danger' : 'success'}
+                showCancel={false}
+            />
         </div>
     );
 };

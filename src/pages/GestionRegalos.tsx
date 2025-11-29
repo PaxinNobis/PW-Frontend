@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import { getCustomGifts, createCustomGift, updateCustomGift, deleteCustomGift } from '../services/panel.service';
 import type { CustomGift, CreateGiftRequest } from '../types/api';
+import ConfirmationModal from '../components/Shared/ConfirmationModal';
 import './GestionRegalos.css';
 
 const GestionRegalos = () => {
@@ -16,6 +17,10 @@ const GestionRegalos = () => {
     puntos: 0
   });
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRegalos();
@@ -66,14 +71,21 @@ const GestionRegalos = () => {
     setEditingId(regalo.id);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar este regalo?')) return;
+  const handleDeleteClick = (id: string) => {
+    setItemToDelete(id);
+    setIsModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
 
     try {
-      await deleteCustomGift(id);
+      await deleteCustomGift(itemToDelete);
       await fetchRegalos();
     } catch (error) {
       console.error('Error deleting gift:', error);
+    } finally {
+      setItemToDelete(null);
     }
   };
 
@@ -196,7 +208,7 @@ const GestionRegalos = () => {
                             </button>
                             <button
                               className="btn btn-outline-danger"
-                              onClick={() => handleDelete(regalo.id)}
+                              onClick={() => handleDeleteClick(regalo.id)}
                             >
                               <i className="bi bi-trash"></i> Eliminar
                             </button>
@@ -211,6 +223,16 @@ const GestionRegalos = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Eliminar Regalo"
+        message="¿Estás seguro de que quieres eliminar este regalo? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        confirmColor="danger"
+      />
     </div>
   );
 };

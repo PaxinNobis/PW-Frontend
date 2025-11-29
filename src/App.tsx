@@ -369,39 +369,116 @@ const App = () => {
             return null;
         }
     };
-    useEffect(() => {
-        const fetchData = async () => {
+    const refreshUserData = async () => {
+        try {
+            // Obtener usuario actual
+            const posibleuser = GetUser();
+            setUser(posibleuser);
+
+            // Cargar datos del backend
             try {
-                // Obtener usuario actual
-                const posibleuser = GetUser();
-                setUser(posibleuser);
+                const [streamsData, tagsData, gamesData, packsData] = await Promise.all([
+                    getAllStreams(),
+                    getAllTags(),
+                    getAllGames(),
+                    getCoinPacks()
+                ]);
 
-                // Cargar datos del backend
-                try {
-                    const [streamsData, tagsData, gamesData, packsData] = await Promise.all([
-                        getAllStreams(),
-                        getAllTags(),
-                        getAllGames(),
-                        getCoinPacks()
-                    ]);
+                // Validar que streamsData sea un array
+                const streams = Array.isArray(streamsData) ? streamsData : (streamsData as any)?.streams || [];
+                const tags = Array.isArray(tagsData) ? tagsData : (tagsData as any)?.tags || [];
+                const games = Array.isArray(gamesData) ? gamesData : (gamesData as any)?.games || [];
+                const packs = Array.isArray(packsData) ? packsData : (packsData as any)?.coinPacks || (packsData as any)?.packs || [];
 
-                    // Validar que streamsData sea un array
-                    const streams = Array.isArray(streamsData) ? streamsData : (streamsData as any)?.streams || [];
-                    const tags = Array.isArray(tagsData) ? tagsData : (tagsData as any)?.tags || [];
-                    const games = Array.isArray(gamesData) ? gamesData : (gamesData as any)?.games || [];
-                    const packs = Array.isArray(packsData) ? packsData : (packsData as any)?.coinPacks || (packsData as any)?.packs || [];
+                // Convertir datos del backend al formato local
+                const convertedStreams = streams.map((s: any) => ({
+                    id: parseInt(s.id) || 0,
+                    user: {
+                        id: s.streamer.id, // UUID del backend
+                        name: s.streamer.name,
+                        email: s.streamer.email,
+                        password: "",
+                        coins: 0,
+                        pfp: "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-70x70.png",
+                        online: s.isLive,
+                        bio: "",
+                        followed: [],
+                        followers: [],
+                        friends: [],
+                        pointsrecieved: [],
+                        messagessent: [],
+                        medalsrecieved: [],
+                        streaminghours: 0,
+                        streamerlevel: { id: 1, level: "Astronauta Novato", min_followers: 0, max_followers: 100, min_hours: 0, max_hours: 50 },
+                        medalsforviewers: [],
+                        clips: [],
+                        xlink: "",
+                        youtubelink: "",
+                        instagramlink: "",
+                        tiktoklink: "",
+                        discordlink: ""
+                    },
+                    game: {
+                        name: s.game.name,
+                        photo: s.game.photo,
+                        spectators: 0,
+                        followers: 0,
+                        tags: s.tags.map((t: any) => ({ id: parseInt(t.id) || 0, name: t.name }))
+                    },
+                    thumbnail: s.thumbnail,
+                    title: s.title,
+                    viewersnumber: s.viewers,
+                    viewersid: [],
+                    messagelist: []
+                }));
 
-                    // Convertir datos del backend al formato local
-                    const convertedStreams = streams.map((s: any) => ({
-                        id: parseInt(s.id) || 0,
-                        user: {
-                            id: s.streamer.id, // UUID del backend
-                            name: s.streamer.name,
-                            email: s.streamer.email,
+                const convertedTags = tags.map((t: any) => ({
+                    id: parseInt(t.id) || 0,
+                    name: t.name
+                }));
+
+                const convertedGames = games.map((g: any) => ({
+                    name: g.name,
+                    photo: g.photo,
+                    spectators: g._count?.streams || 0,
+                    followers: 0,
+                    tags: g.tags.map((t: any) => ({ id: parseInt(t.id) || 0, name: t.name }))
+                }));
+
+                const uniquePacksMap = new Map();
+                packs.forEach((p: any) => {
+                    if (!uniquePacksMap.has(p.id)) {
+                        uniquePacksMap.set(p.id, {
+                            id: p.id,
+                            name: p.nombre,
+                            value: p.valor,
+                            initialprice: p.en_soles,
+                            finalprice: p.en_soles,
+                            discount: 0
+                        });
+                    }
+                });
+                const convertedPacks = Array.from(uniquePacksMap.values());
+
+                setStreams(convertedStreams);
+                setTags(convertedTags);
+                setGames(convertedGames);
+                setPacks(convertedPacks);
+
+                // Cargar following si hay usuario autenticado
+                if (posibleuser) {
+                    try {
+                        const followingData = await getFollowing();
+                        console.log('Following data response:', followingData);
+                        const followingList = Array.isArray(followingData) ? followingData : (followingData as any).following || [];
+                        const convertedFollowing = followingList.map((f: any) => ({
+                            id: f.id, // UUID del backend
+                            name: f.name,
+                            email: f.email,
                             password: "",
                             coins: 0,
                             pfp: "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-70x70.png",
-                            online: s.isLive,
+                            online: f.stream?.isLive || false,
                             bio: "",
                             followed: [],
                             followers: [],
@@ -418,128 +495,123 @@ const App = () => {
                             instagramlink: "",
                             tiktoklink: "",
                             discordlink: ""
-                        },
-                        game: {
-                            name: s.game.name,
-                            photo: s.game.photo,
-                            spectators: 0,
-                            followers: 0,
-                            tags: s.tags.map((t: any) => ({ id: parseInt(t.id) || 0, name: t.name }))
-                        },
-                        thumbnail: s.thumbnail,
-                        title: s.title,
-                        viewersnumber: s.viewers,
-                        viewersid: [],
-                        messagelist: []
-                    }));
+                        }));
+                        setFollowing(convertedFollowing);
 
-                    const convertedTags = tags.map((t: any) => ({
-                        id: parseInt(t.id) || 0,
-                        name: t.name
-                    }));
-
-                    const convertedGames = games.map((g: any) => ({
-                        name: g.name,
-                        photo: g.photo,
-                        spectators: g._count?.streams || 0,
-                        followers: 0,
-                        tags: g.tags.map((t: any) => ({ id: parseInt(t.id) || 0, name: t.name }))
-                    }));
-
-                    const uniquePacksMap = new Map();
-                    packs.forEach((p: any) => {
-                        if (!uniquePacksMap.has(p.id)) {
-                            uniquePacksMap.set(p.id, {
-                                id: p.id,
-                                name: p.nombre,
-                                value: p.valor,
-                                initialprice: p.en_soles,
-                                finalprice: p.en_soles,
-                                discount: 0
-                            });
-                        }
-                    });
-                    const convertedPacks = Array.from(uniquePacksMap.values());
-
-                    setStreams(convertedStreams);
-                    setTags(convertedTags);
-                    setGames(convertedGames);
-                    setPacks(convertedPacks);
-
-                    // Cargar following si hay usuario autenticado
-                    if (posibleuser) {
+                        // Actualizar monedas del usuario desde el backend si es posible
+                        // Esto es crucial para la sincronización
                         try {
-                            const followingData = await getFollowing();
-                            console.log('Following data response:', followingData);
-                            const followingList = Array.isArray(followingData) ? followingData : (followingData as any).following || [];
-                            const convertedFollowing = followingList.map((f: any) => ({
-                                id: f.id, // UUID del backend
-                                name: f.name,
-                                email: f.email,
-                                password: "",
-                                coins: 0,
-                                pfp: "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-70x70.png",
-                                online: f.stream?.isLive || false,
-                                bio: "",
-                                followed: [],
-                                followers: [],
-                                friends: [],
-                                pointsrecieved: [],
-                                messagessent: [],
-                                medalsrecieved: [],
-                                streaminghours: 0,
-                                streamerlevel: { id: 1, level: "Astronauta Novato", min_followers: 0, max_followers: 100, min_hours: 0, max_hours: 50 },
-                                medalsforviewers: [],
-                                clips: [],
-                                xlink: "",
-                                youtubelink: "",
-                                instagramlink: "",
-                                tiktoklink: "",
-                                discordlink: ""
-                            }));
-                            setFollowing(convertedFollowing);
-                        } catch (err) {
-                            console.error("Error loading following:", err);
+                            // Intentar obtener el perfil más reciente para actualizar monedas
+                            const updatedProfile = await profileService.getUserProfile(posibleuser.id);
+                            if (updatedProfile && typeof updatedProfile.coins === 'number') {
+                                const updatedUser = { ...posibleuser, coins: updatedProfile.coins };
+                                setUser(updatedUser);
+                                localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+                            }
+                        } catch (e) {
+                            console.log("No se pudo actualizar saldo en tiempo real");
                         }
-                    }
 
-                } catch (backendError) {
-                    console.warn("Error al cargar desde backend, usando datos locales");
-                    // Fallback a datos locales si el backend falla
-                    const response1 = await fetch("./data/streams.json");
-                    const data1 = await response1.json();
-                    setStreams(data1);
-                    const response2 = await fetch("./data/tags.json");
-                    const data2 = await response2.json();
-                    setTags(data2);
-                    const response3 = await fetch("./data/games.json");
-                    const data3 = await response3.json();
-                    setGames(data3);
-                    const response4 = await fetch("./data/following.json");
-                    const data4 = await response4.json();
-                    setFollowing(data4);
-                    const response5 = await fetch("./data/packs.json");
-                    const data5 = await response5.json();
-                    setPacks(data5);
-                    console.log("Datos locales cargados como fallback");
+                    } catch (err) {
+                        console.error("Error loading following:", err);
+                    }
                 }
 
-                // Cargar datos locales que no están en el backend aún
-                const response6 = await fetch("./data/users.json");
-                const data6 = await response6.json();
-                setUsers(data6);
-                const response7 = await fetch("./data/levels.json");
-                const data7 = await response7.json();
-                setLevels(data7);
-                const response8 = await fetch("./data/medals.json");
-                const data8 = await response8.json();
-                setMedals(data8);
-
-            } catch (error) {
-                console.error("Error al cargar datos:", error);
+            } catch (backendError) {
+                console.warn("Error al cargar desde backend, usando datos locales");
+                // Fallback a datos locales si el backend falla
+                const response1 = await fetch("./data/streams.json");
+                const data1 = await response1.json();
+                setStreams(data1);
+                const response2 = await fetch("./data/tags.json");
+                const data2 = await response2.json();
+                setTags(data2);
+                const response3 = await fetch("./data/games.json");
+                const data3 = await response3.json();
+                setGames(data3);
+                const response4 = await fetch("./data/following.json");
+                const data4 = await response4.json();
+                setFollowing(data4);
+                const response5 = await fetch("./data/packs.json");
+                const data5 = await response5.json();
+                setPacks(data5);
+                console.log("Datos locales cargados como fallback");
             }
+
+            // Cargar datos locales que no están en el backend aún
+            const response6 = await fetch("./data/users.json");
+            const data6 = await response6.json();
+            setUsers(data6);
+            const response7 = await fetch("./data/levels.json");
+            const data7 = await response7.json();
+            setLevels(data7);
+            const response8 = await fetch("./data/medals.json");
+            const data8 = await response8.json();
+            setMedals(data8);
+
+        } catch (error) {
+            console.error("Error al cargar datos:", error);
+        }
+    };
+
+    const refreshUserCoins = async () => {
+        const currentUser = GetUser();
+        if (!currentUser) return;
+
+        try {
+            // Use fetchCurrentUser (auth/me) instead of getUserProfile because it guarantees returning coins
+            const { fetchCurrentUser } = await import('./services/auth.service');
+            const updatedUser = await fetchCurrentUser();
+
+            if (updatedUser && typeof updatedUser.coins === 'number') {
+                // Always update if different to ensure sync
+                if (currentUser.coins !== updatedUser.coins) {
+                    const newLocalUser = { ...currentUser, coins: updatedUser.coins };
+                    setUser(newLocalUser);
+                    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(newLocalUser));
+                }
+            }
+        } catch (error) {
+            console.error("Error refreshing user coins:", error);
+        }
+    };
+
+    useEffect(() => {
+        refreshUserData();
+
+        // Retry fetching user data after 2 seconds to handle potential race conditions (e.g. after payment)
+        const timer = setTimeout(() => {
+            refreshUserCoins();
+        }, 2000);
+
+        // Escuchar evento de actualización de monedas
+        const handleCoinsUpdate = (event: Event) => {
+            console.log("Evento userCoinsUpdated recibido, actualizando datos...");
+
+            // Actualización optimista
+            const customEvent = event as CustomEvent;
+            if (customEvent.detail && typeof customEvent.detail.cost === 'number') {
+                const cost = customEvent.detail.cost;
+                console.log(`Aplicando actualización optimista: -${cost} monedas`);
+
+                setUser(prevUser => {
+                    if (!prevUser) return null;
+                    const newCoins = Math.max(0, prevUser.coins - cost);
+                    const updatedUser = { ...prevUser, coins: newCoins };
+                    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+                    return updatedUser;
+                });
+            }
+
+            refreshUserCoins();
         };
-        fetchData();
+
+        window.addEventListener('userCoinsUpdated', handleCoinsUpdate);
+
+        return () => {
+            window.removeEventListener('userCoinsUpdated', handleCoinsUpdate);
+            clearTimeout(timer);
+        };
     }, []);
 
     return <AppRouter streams={streams} tags={tags} games={games} following={following} packs={packs} users={users} user={user} doPayment={PayingFunction} doFollowing={FollowFunction} doChatting={ChatFunction} doLogIn={LogInFunction} doSignIn={SignInFunction} doLogOut={LogOutFunction} GetUser={GetUser} />;

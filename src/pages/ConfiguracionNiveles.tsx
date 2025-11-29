@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import './ConfiguracionNiveles.css';
 import { getLoyaltyLevels, updateLoyaltyLevels, type LoyaltyLevel } from '../services/loyalty.service';
+import ConfirmationModal from '../components/Shared/ConfirmationModal';
 
 const ConfiguracionNiveles = () => {
   const [niveles, setNiveles] = useState<LoyaltyLevel[]>([]);
@@ -8,6 +9,10 @@ const ConfiguracionNiveles = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [levelToDelete, setLevelToDelete] = useState<number | null>(null);
 
   useEffect(() => {
     loadLevels();
@@ -62,9 +67,15 @@ const ConfiguracionNiveles = () => {
     setNiveles([...niveles, { id: newId, nombre: '', puntosRequeridos: 0, recompensa: '' }]);
   };
 
-  const handleDeleteLevel = (id: number) => {
-    if (confirm('¿Estás seguro de que quieres eliminar este nivel?')) {
-      setNiveles(niveles.filter(n => n.id !== id));
+  const handleDeleteClick = (id: number) => {
+    setLevelToDelete(id);
+    setIsModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (levelToDelete !== null) {
+      setNiveles(niveles.filter(n => n.id !== levelToDelete));
+      setLevelToDelete(null);
     }
   };
 
@@ -151,7 +162,7 @@ const ConfiguracionNiveles = () => {
                   <td>
                     <button
                       className="btn btn-outline-danger btn-sm"
-                      onClick={() => handleDeleteLevel(nivel.id!)}
+                      onClick={() => handleDeleteClick(nivel.id!)}
                       title="Eliminar nivel"
                     >
                       <i className="bi bi-trash"></i>
@@ -193,6 +204,16 @@ const ConfiguracionNiveles = () => {
           </button>
         </div>
       </div>
+
+      <ConfirmationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Eliminar Nivel"
+        message="¿Estás seguro de que quieres eliminar este nivel?"
+        confirmText="Eliminar"
+        confirmColor="danger"
+      />
     </div>
   );
 };

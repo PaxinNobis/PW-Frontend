@@ -71,3 +71,10 @@ export const updateLoyaltyLevels = async (
   const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PANEL_LOYALTY_LEVELS}`;
   return apiPut<LoyaltyLevel[]>(url, data, getAuthHeaders());
 };
+/**
+ * Enviar un regalo a un streamer
+ */
+export const sendGift = async (giftId: string, streamerId: string): Promise<{ success: boolean; message: string; pointsEarned: number }> => {
+  const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.GIFTS_SEND}`;
+  return apiPost(url, { giftId, streamerId }, getAuthHeaders());
+};

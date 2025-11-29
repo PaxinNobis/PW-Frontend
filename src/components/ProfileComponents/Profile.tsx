@@ -10,21 +10,21 @@ import type { User } from '../../GlobalObjects/Objects_DataTypes';
 import Videos from './Videos';
 import { useProfile } from '../../hooks/useNewFeatures';
 
-interface ProfileProps{
-    GetUser : () => User | null
-    users : User[]
-    following : User[]
-    doFollowing : (user: User) => Promise<void>
+interface ProfileProps {
+    GetUser: () => User | null
+    users: User[]
+    following: User[]
+    doFollowing: (user: User) => Promise<void>
 }
-const Profile = (props : ProfileProps) => {
+const Profile = (props: ProfileProps) => {
     const { identifier } = useParams<{ identifier: string }>();
-    
+
     // Usar el identifier (puede ser nombre, email o UUID)
     const userId = identifier;
-    
+
     // Cargar perfil completo del backend
     const { profile: backendProfile, loading } = useProfile(userId);
-    
+
     // Usar perfil del backend directamente
     const profiletoshow = backendProfile ? {
         id: backendProfile.id, // UUID del backend
@@ -51,20 +51,20 @@ const Profile = (props : ProfileProps) => {
         tiktoklink: backendProfile.socialLinks?.tiktok || '',
         discordlink: backendProfile.socialLinks?.discord || ''
     } as User : null;
-    
+
     const [Issighting, SetIssighting] = useState<boolean>(true);
     const user = props.GetUser();
-    
+
     useEffect(() => {
         SetIssighting(true)
-        if (!user || !profiletoshow){
+        if (!user || !profiletoshow) {
             return
         }
-        if (profiletoshow.name == user.name){
+        if (profiletoshow.name == user.name) {
             SetIssighting(false)
         }
-    },[profiletoshow, user]);
-    
+    }, [profiletoshow, user]);
+
     // Mostrar loading mientras carga
     if (loading) {
         return (
@@ -79,7 +79,7 @@ const Profile = (props : ProfileProps) => {
         );
     }
 
-    if (!profiletoshow){
+    if (!profiletoshow) {
         if (!loading) {
             return (
                 <div className="container mt-5">
@@ -98,62 +98,62 @@ const Profile = (props : ProfileProps) => {
         }
         return null; // Mientras carga
     }
-    
-    const isFollowing = () =>{
+
+    const isFollowing = () => {
         let following = false
         for (let i = 0; i < props.following.length; i++) {
-            if (props.following[i].id == profiletoshow.id){
+            if (props.following[i].id == profiletoshow.id) {
                 following = true;
             }
         }
         return following
     }
-return (
-    <div className="container p-5 ">
-        <div className="row justify-content-center">
-            <div className="card position-relative  w-100 h-100">
-                <div className="card-body">
-                    <div className="card-body p-4 d-flex pb-5 border-bottom">
-                        <img className="Profile_Img" src={profiletoshow.pfp} alt="Img"/>
-                        <div className='d-flex bd-highlight flex-column flex-grow-1'>
-                            <div className="mx-5 pe-5">
-                                <div className="mb-3">
-                                    <h1> {profiletoshow.name} <i className="bi bi-patch-check-fill"></i></h1>
-                                    <h3> {profiletoshow.email}</h3>
-                                    <p className = "">{profiletoshow.bio? profiletoshow.bio : `Hola soy ${profiletoshow.name} y hago streams!`}</p>
+    return (
+        <div className="container p-5 ">
+            <div className="row justify-content-center">
+                <div className="card position-relative  w-100 h-100">
+                    <div className="card-body">
+                        <div className="card-body p-4 d-flex flex-column flex-lg-row pb-5 border-bottom align-items-center align-items-lg-start">
+                            <img className="Profile_Img mb-4 mb-lg-0 me-lg-5" src={profiletoshow.pfp} alt="Img" />
+                            <div className='d-flex bd-highlight flex-column flex-grow-1 w-100'>
+                                <div className="pe-lg-5 text-center text-lg-start">
+                                    <div className="mb-3">
+                                        <h1> {profiletoshow.name} <i className="bi bi-patch-check-fill"></i></h1>
+                                        <h3> {profiletoshow.email}</h3>
+                                        <p className="">{profiletoshow.bio ? profiletoshow.bio : `Hola soy ${profiletoshow.name} y hago streams!`}</p>
+                                    </div>
                                 </div>
-                            </div>
-                            {
-                                !Issighting? 
-                                <div className="position-absolute top-0 end-0 m-4 d-flex justify-content-between">
-                                    <EditProfileButton></EditProfileButton>
-                                </div> 
-                                : 
-                                <div className="position-absolute top-0 end-0 m-4 d-flex justify-content-between">
-                                    <FollowButton doFollowing = {props.doFollowing} isFollowing = {isFollowing()} user={profiletoshow}></FollowButton>
-                                </div> 
-                            }                            
-                            <div className="d-flex mt-auto bd-highlight justify-content-center align-items-end">
-                                <h3 className="mx-4"> <i className="bi bi-person-fill"></i> {profiletoshow.followers.length} </h3>
-                                <h3 className="mx-4"> <i className="bi bi-person"></i> {profiletoshow.followed.length} </h3>
-                                <div className="position-absolute end-0 me-4">
-                                    <SocialLink link={profiletoshow.xlink} icon = "bi-twitter-x" text = ""></SocialLink>
-                                    <SocialLink link={profiletoshow.instagramlink} icon = "bi-instagram" text = ""></SocialLink>
-                                    <SocialLink link={profiletoshow.tiktoklink} icon = "bi-tiktok" text = ""></SocialLink>
-                                    <SocialLink link={profiletoshow.discordlink} icon = "bi-discord" text = ""></SocialLink>
-                                    <SocialLink link={profiletoshow.youtubelink} icon = "bi-youtube" text = ""></SocialLink>
+                                {
+                                    !Issighting ?
+                                        <div className="position-absolute top-0 end-0 m-4 d-flex justify-content-between">
+                                            <EditProfileButton></EditProfileButton>
+                                        </div>
+                                        :
+                                        <div className="position-absolute top-0 end-0 m-4 d-flex justify-content-between">
+                                            <FollowButton doFollowing={props.doFollowing} isFollowing={isFollowing()} user={profiletoshow}></FollowButton>
+                                        </div>
+                                }
+                                <div className="d-flex mt-auto bd-highlight justify-content-center justify-content-lg-start align-items-end flex-wrap">
+                                    <h3 className="mx-3 mx-lg-4"> <i className="bi bi-person-fill"></i> {profiletoshow.followers.length} </h3>
+                                    <h3 className="mx-3 mx-lg-4"> <i className="bi bi-person"></i> {profiletoshow.followed.length} </h3>
+                                    <div className="d-flex mt-3 mt-lg-0 ms-lg-auto">
+                                        <SocialLink link={profiletoshow.xlink} icon="bi-twitter-x" text=""></SocialLink>
+                                        <SocialLink link={profiletoshow.instagramlink} icon="bi-instagram" text=""></SocialLink>
+                                        <SocialLink link={profiletoshow.tiktoklink} icon="bi-tiktok" text=""></SocialLink>
+                                        <SocialLink link={profiletoshow.discordlink} icon="bi-discord" text=""></SocialLink>
+                                        <SocialLink link={profiletoshow.youtubelink} icon="bi-youtube" text=""></SocialLink>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div className="card-body p-4 d-flex">
-                        <Videos></Videos>
+                        <div className="card-body p-4 d-flex">
+                            <Videos></Videos>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-)
+    )
 };
 
 export default Profile;

@@ -14,6 +14,7 @@ export interface UserProfile {
   bio: string;
   online: boolean;
   lastSeen: Date;
+  coins: number;
   stats: {
     followers: number;
     following: number;
@@ -55,7 +56,7 @@ export interface UploadAvatarResponse {
  * Obtener perfil de usuario
  */
 export const getUserProfile = async (userId: string): Promise<UserProfile> => {
-  const url = `${API_CONFIG.BASE_URL}/api/profile/${userId}`;
+  const url = `${API_CONFIG.BASE_URL}/api/profile/${userId}?t=${new Date().getTime()}`;
   const response = await apiGet<{ success: boolean; user: UserProfile }>(url, API_CONFIG.HEADERS);
   return response.user;
 };
@@ -78,7 +79,7 @@ export const updateAvatar = async (file: File): Promise<UploadAvatarResponse> =>
 
   const authHeaders = getAuthHeaders();
   const headers: Record<string, string> = {};
-  
+
   if ('Authorization' in authHeaders) {
     headers['Authorization'] = authHeaders.Authorization as string;
   }

@@ -31,6 +31,9 @@ export const API_CONFIG = {
     PANEL_GIFT: (id: string) => `/api/panel/gifts/${id}`,
     PANEL_LOYALTY_LEVELS: '/api/panel/loyalty-levels',
 
+    // Gifts
+    GIFTS_SEND: '/api/gifts/send',
+
     // Chat
     CHAT_SEND: '/api/chat/send',
     CHAT_MESSAGES: (streamId: string) => `/api/chat/messages/${streamId}`,
