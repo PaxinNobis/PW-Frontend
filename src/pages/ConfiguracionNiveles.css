@@ -1,0 +1,212 @@
+/* pages/ConfiguracionNiveles.css */
+/* Estilos Premium para Configuración de Niveles - Tema Dark Neon */
+
+:root {
+    --neon-purple: #b13bff;
+    --neon-blue: #3b82f6;
+    --neon-pink: #ff3b8d;
+    --dark-bg: #090040;
+    --glass-bg: rgba(13, 12, 34, 0.7);
+    --glass-border: rgba(177, 59, 255, 0.3);
+    --text-primary: #e0e0e0;
+    --text-secondary: #a69cac;
+}
+
+.configuracion-niveles {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Contenedor Principal con efecto Glassmorphism */
+.config-niveles-card {
+    background: var(--glass-bg) !important;
+    /* Override Bootstrap */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    border-radius: 16px;
+    overflow: hidden;
+    color: var(--text-primary);
+}
+
+.card-header {
+    background: linear-gradient(90deg, rgba(177, 59, 255, 0.1) 0%, rgba(9, 0, 64, 0.0) 100%) !important;
+    border-bottom: 1px solid var(--glass-border);
+    padding: 1.5rem;
+}
+
+.card-header h3 {
+    color: var(--text-primary);
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(177, 59, 255, 0.5);
+    margin-bottom: 0.5rem;
+}
+
+.card-header p {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.card-body {
+    padding: 2rem;
+    background: transparent !important;
+}
+
+/* Formulario / Tabla Container */
+.niveles-form {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Tabla Estilizada */
+.table-responsive {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 1.5rem;
+}
+
+.table {
+    margin-bottom: 0;
+    color: var(--text-primary) !important;
+    vertical-align: middle;
+    --bs-table-bg: transparent;
+    /* Bootstrap variable override */
+    --bs-table-color: var(--text-primary);
+    background-color: transparent !important;
+}
+
+.table thead {
+    background: rgba(177, 59, 255, 0.15) !important;
+}
+
+.table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    color: var(--neon-purple);
+    border: none;
+    padding: 1rem;
+    background-color: transparent !important;
+}
+
+.table tbody tr {
+    background: transparent !important;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.table tbody tr:hover {
+    background: rgba(177, 59, 255, 0.05) !important;
+}
+
+.table td {
+    padding: 0.8rem 1rem;
+    border: none;
+    vertical-align: middle;
+    background-color: transparent !important;
+    color: var(--text-primary);
+}
+
+/* Badges */
+.badge-id {
+    background: rgba(177, 59, 255, 0.2);
+    color: var(--neon-purple);
+    border: 1px solid rgba(177, 59, 255, 0.4);
+    padding: 0.4em 0.8em;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+/* Inputs en tabla */
+.form-control {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-primary) !important;
+    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    border-color: var(--neon-purple);
+    box-shadow: 0 0 0 3px rgba(177, 59, 255, 0.2);
+    color: white !important;
+}
+
+.form-control-sm {
+    font-size: 0.9rem;
+}
+
+/* Botones */
+.btn-save {
+    background: linear-gradient(135deg, #2ec4b6 0%, #20a094 100%);
+    border: none;
+    color: #090040;
+    font-weight: 700;
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(46, 196, 182, 0.3);
+}
+
+.btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(46, 196, 182, 0.5);
+    background: linear-gradient(135deg, #3be0d0 0%, #2ec4b6 100%);
+    color: #090040;
+}
+
+.btn-save:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Alertas */
+.alert {
+    border-radius: 10px;
+    border: none;
+    backdrop-filter: blur(5px);
+    margin-bottom: 1.5rem;
+}
+
+.alert-success {
+    background: rgba(46, 196, 182, 0.15);
+    border-left: 4px solid #2ec4b6;
+    color: #2ec4b6;
+}
+
+.alert-danger {
+    background: rgba(255, 107, 53, 0.15);
+    border-left: 4px solid #ff6b35;
+    color: #ff6b35;
+}
+
+/* Scrollbar */
+.table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: rgba(177, 59, 255, 0.3);
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: rgba(177, 59, 255, 0.5);
+}

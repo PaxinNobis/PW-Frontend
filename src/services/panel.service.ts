@@ -23,7 +23,8 @@ export const getAnalytics = async (): Promise<Analytics> => {
  */
 export const getCustomGifts = async (): Promise<CustomGift[]> => {
   const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PANEL_GIFTS}`;
-  return apiGet<CustomGift[]>(url, getAuthHeaders());
+  const response = await apiGet<{ success: boolean; gifts: CustomGift[] }>(url, getAuthHeaders());
+  return response.gifts;
 };
 
 /**

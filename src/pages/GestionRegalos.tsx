@@ -1,111 +1,213 @@
 // pages/GestionRegalos.tsx
-// Componente para que streamers gestionen regalos personalizados (Vista estática)
+// Componente para que streamers gestionen regalos personalizados
 
+import { useState, useEffect } from 'react';
+import { getCustomGifts, createCustomGift, updateCustomGift, deleteCustomGift } from '../services/panel.service';
+import type { CustomGift, CreateGiftRequest } from '../types/api';
 import './GestionRegalos.css';
 
-interface Regalo {
-  id: string;
-  nombre: string;
-  costo: number;
-  puntos: number;
-}
-
 const GestionRegalos = () => {
-  const regalos: Regalo[] = [
-    { id: '1', nombre: ' Corazón', costo: 10, puntos: 5 },
-    { id: '2', nombre: ' Estrella', costo: 25, puntos: 15 },
-    { id: '3', nombre: ' Regalo', costo: 50, puntos: 30 },
-  ];
+  const [regalos, setRegalos] = useState<CustomGift[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    nombre: '',
+    costo: 0,
+    puntos: 0
+  });
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchRegalos();
+  }, []);
+
+  const fetchRegalos = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getCustomGifts();
+      setRegalos(data);
+    } catch (error: any) {
+      console.error('Error fetching gifts:', error);
+      setError('No se pudieron cargar los regalos. El backend no está disponible o el endpoint no está implementado.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const giftData: CreateGiftRequest = {
+      nombre: formData.nombre,
+      costo: formData.costo,
+      puntos: formData.puntos
+    };
+
+    try {
+      if (editingId) {
+        await updateCustomGift(editingId, giftData);
+      } else {
+        await createCustomGift(giftData);
+      }
+      await fetchRegalos();
+      resetForm();
+    } catch (error) {
+      console.error('Error saving gift:', error);
+    }
+  };
+
+  const handleEdit = (regalo: CustomGift) => {
+    setFormData({
+      nombre: regalo.nombre,
+      costo: regalo.costo,
+      puntos: regalo.puntos
+    });
+    setEditingId(regalo.id);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar este regalo?')) return;
+
+    try {
+      await deleteCustomGift(id);
+      await fetchRegalos();
+    } catch (error) {
+      console.error('Error deleting gift:', error);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({ nombre: '', costo: 0, puntos: 0 });
+    setEditingId(null);
+  };
 
   return (
     <div className="container mt-4">
       <div className="card">
         <div className="card-header">
-          <h3> Gestión de Regalos</h3>
+          <h3>Gestión de Regalos</h3>
           <p className="text-muted mb-0">Personaliza los regalos disponibles en tu canal</p>
         </div>
-        
+
         <div className="card-body">
-          {/* Formulario para agregar nuevo regalo */}
+          {/* Formulario para agregar/editar regalo */}
           <div className="nuevo-regalo-form mb-4">
-            <h5>Agregar Nuevo Regalo</h5>
-            <div className="row g-3">
-              <div className="col-md-4">
-                <label className="form-label">Nombre del Regalo</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Ej:  Estrella Dorada"
-                  disabled
-                />
+            <h5>{editingId ? 'Editar Regalo' : 'Agregar Nuevo Regalo'}</h5>
+            <form onSubmit={handleSubmit}>
+              <div className="row g-3">
+                <div className="col-md-4">
+                  <label className="form-label">Nombre del Regalo</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Ej: 🌟 Estrella Dorada"
+                    value={formData.nombre}
+                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="col-md-3">
+                  <label className="form-label">Costo (DogeCoins)</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    placeholder="10"
+                    value={formData.costo}
+                    onChange={(e) => setFormData({ ...formData, costo: parseInt(e.target.value) })}
+                    min="1"
+                    required
+                  />
+                </div>
+                <div className="col-md-3">
+                  <label className="form-label">Puntos que otorga</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    placeholder="5"
+                    value={formData.puntos}
+                    onChange={(e) => setFormData({ ...formData, puntos: parseInt(e.target.value) })}
+                    min="0"
+                    required
+                  />
+                </div>
+                <div className="col-md-2 d-flex align-items-end gap-2">
+                  <button type="submit" className="btn btn-primary flex-grow-1">
+                    {editingId ? 'Actualizar' : 'Agregar'}
+                  </button>
+                  {editingId && (
+                    <button type="button" className="btn btn-secondary" onClick={resetForm}>
+                      Cancelar
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="col-md-3">
-                <label className="form-label">Costo (DogeCoins)</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  placeholder="10"
-                  disabled
-                />
-              </div>
-              <div className="col-md-3">
-                <label className="form-label">Puntos que otorga</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  placeholder="5"
-                  disabled
-                />
-              </div>
-              <div className="col-md-2 d-flex align-items-end">
-                <button className="btn btn-primary w-100" disabled>
-                  Agregar
-                </button>
-              </div>
-            </div>
+            </form>
           </div>
 
           {/* Lista de regalos */}
           <div className="regalos-lista">
             <h5 className="mb-3">Regalos Actuales ({regalos.length})</h5>
-            
-            <div className="table-responsive">
-              <table className="table table-hover">
-                <thead>
-                  <tr>
-                    <th>Nombre</th>
-                    <th>Costo (DogeCoins)</th>
-                    <th>Puntos</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {regalos.map(regalo => (
-                    <tr key={regalo.id}>
-                      <td>
-                        <span className="regalo-nombre">{regalo.nombre}</span>
-                      </td>
-                      <td>
-                        <span>{regalo.costo}</span>
-                      </td>
-                      <td>
-                        <span>{regalo.puntos}</span>
-                      </td>
-                      <td>
-                        <div className="btn-group btn-group-sm">
-                          <button className="btn btn-outline-primary" disabled>
-                            <i className="bi bi-pencil"></i> Editar
-                          </button>
-                          <button className="btn btn-outline-danger" disabled>
-                            <i className="bi bi-trash"></i> Eliminar
-                          </button>
-                        </div>
-                      </td>
+
+            {error ? (
+              <div className="alert alert-warning" role="alert">
+                <strong>Error:</strong> {error}
+                <br />
+                <small className="text-muted">
+                  El backend necesita implementar el endpoint <code>GET /api/panel/gifts</code>
+                </small>
+              </div>
+            ) : loading ? (
+              <div className="text-center py-4">Cargando...</div>
+            ) : regalos.length === 0 ? (
+              <div className="text-center py-4 text-muted">
+                No has creado regalos aún. ¡Crea tu primer regalo personalizado!
+              </div>
+            ) : (
+              <div className="table-responsive">
+                <table className="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Nombre</th>
+                      <th>Costo (DogeCoins)</th>
+                      <th>Puntos</th>
+                      <th>Acciones</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {regalos.map(regalo => (
+                      <tr key={regalo.id}>
+                        <td>
+                          <span className="regalo-nombre">{regalo.nombre}</span>
+                        </td>
+                        <td>
+                          <span>{regalo.costo}</span>
+                        </td>
+                        <td>
+                          <span>{regalo.puntos}</span>
+                        </td>
+                        <td>
+                          <div className="btn-group btn-group-sm">
+                            <button
+                              className="btn btn-outline-primary"
+                              onClick={() => handleEdit(regalo)}
+                            >
+                              <i className="bi bi-pencil"></i> Editar
+                            </button>
+                            <button
+                              className="btn btn-outline-danger"
+                              onClick={() => handleDelete(regalo.id)}
+                            >
+                              <i className="bi bi-trash"></i> Eliminar
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -118,3 +118,42 @@ export interface CheckoutSessionResponse {
 export interface WebhookResponse {
   received: boolean;
 }
+
+export interface Transaction {
+  id: string;
+  amount: number;
+  coins: number;
+  status: string;
+  createdAt: string;
+  pack: {
+    nombre: string;
+  };
+}
+
+export interface TransactionHistoryResponse {
+  transactions: Transaction[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export interface BalanceResponse {
+  coins: number;
+  lastPurchase?: {
+    date: string;
+    amount: number;
+    coins: number;
+  };
+}
+
+// ============ POINTS ============
+export interface SendPointsRequest {
+  streamerId: string;
+  points: number;
+}
+
+export interface SendPointsResponse {
+  success: boolean;
+  newBalance: number;
+  streamerReceived: number;
+}

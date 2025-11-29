@@ -1,44 +1,252 @@
 /* pages/GestionRegalos.css */
-/* Estilos para el componente de gestión de regalos */
+/* Estilos Premium para Gestión de Regalos - Tema Dark Neon */
 
-.nuevo-regalo-form {
-  background-color: #f8f9fa;
+:root {
+  --neon-purple: #b13bff;
+  --neon-blue: #3b82f6;
+  --neon-pink: #ff3b8d;
+  --dark-bg: #090040;
+  --glass-bg: rgba(13, 12, 34, 0.7);
+  --glass-border: rgba(177, 59, 255, 0.3);
+  --text-primary: #e0e0e0;
+  --text-secondary: #a69cac;
+}
+
+/* Contenedor Principal con efecto Glassmorphism */
+.card {
+  background: var(--glass-bg) !important;
+  /* Override Bootstrap */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  border-radius: 16px;
+  overflow: hidden;
+  color: var(--text-primary);
+}
+
+.card-header {
+  background: linear-gradient(90deg, rgba(177, 59, 255, 0.1) 0%, rgba(9, 0, 64, 0.0) 100%) !important;
+  border-bottom: 1px solid var(--glass-border);
   padding: 1.5rem;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
+}
+
+.card-header h3 {
+  color: var(--text-primary);
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(177, 59, 255, 0.5);
+  margin-bottom: 0.5rem;
+}
+
+.card-body {
+  padding: 2rem;
+  background: transparent !important;
+}
+
+/* Formulario Nuevo Regalo */
+.nuevo-regalo-form {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  transition: all 0.3s ease;
+}
+
+.nuevo-regalo-form:hover {
+  border-color: var(--neon-purple);
+  box-shadow: 0 0 15px rgba(177, 59, 255, 0.1);
 }
 
 .nuevo-regalo-form h5 {
-  margin-bottom: 1rem;
-  color: #495057;
+  color: var(--neon-purple);
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.regalos-lista {
-  margin-top: 2rem;
-}
-
-.regalo-nombre {
+/* Inputs Modernos */
+.form-label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
   font-weight: 500;
-  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.form-control {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary) !important;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  border-color: var(--neon-purple);
+  box-shadow: 0 0 0 3px rgba(177, 59, 255, 0.2);
+  color: white !important;
+}
+
+.form-control::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Botones con Gradiente */
+.btn-primary {
+  background: linear-gradient(135deg, #b13bff 0%, #8a2be2 100%) !important;
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 0.6rem 1.5rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(177, 59, 255, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(177, 59, 255, 0.5);
+  background: linear-gradient(135deg, #c25eff 0%, #9d40ff 100%) !important;
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: white;
+}
+
+/* Tabla Estilizada */
+.table-responsive {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.table {
+  margin-bottom: 0;
+  color: var(--text-primary) !important;
+  vertical-align: middle;
+  --bs-table-bg: transparent;
+  /* Bootstrap variable override */
+  --bs-table-color: var(--text-primary);
+  background-color: transparent !important;
 }
 
 .table thead {
-  background-color: #e9ecef;
+  background: rgba(177, 59, 255, 0.15) !important;
 }
 
 .table th {
   font-weight: 600;
   text-transform: uppercase;
-  font-size: 0.85rem;
-  letter-spacing: 0.5px;
-  color: #495057;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  color: var(--neon-purple);
+  border: none;
+  padding: 1rem;
+  background-color: transparent !important;
+  /* Ensure th background is transparent */
+}
+
+.table tbody tr {
+  background: transparent !important;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background: rgba(177, 59, 255, 0.05) !important;
 }
 
 .table td {
+  padding: 1rem;
+  border: none;
   vertical-align: middle;
+  background-color: transparent !important;
+  /* Ensure td background is transparent */
+  color: var(--text-primary);
 }
 
+/* Estilos específicos de celdas */
+.regalo-nombre {
+  font-weight: 600;
+  color: white;
+  font-size: 1rem;
+}
+
+/* Botones de acción en tabla */
 .btn-group-sm .btn {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  margin: 0 2px;
+}
+
+.btn-outline-primary {
+  color: var(--neon-purple);
+  border-color: var(--neon-purple);
+  background: transparent;
+}
+
+.btn-outline-primary:hover {
+  background: var(--neon-purple);
+  color: white;
+  box-shadow: 0 0 10px rgba(177, 59, 255, 0.4);
+}
+
+.btn-outline-danger {
+  color: var(--neon-pink);
+  border-color: var(--neon-pink);
+  background: transparent;
+}
+
+.btn-outline-danger:hover {
+  background: var(--neon-pink);
+  color: white;
+  box-shadow: 0 0 10px rgba(255, 59, 141, 0.4);
+}
+
+/* Alertas */
+.alert {
+  border-radius: 10px;
+  border: none;
+  backdrop-filter: blur(5px);
+}
+
+.alert-warning {
+  background: rgba(255, 193, 7, 0.15);
+  border-left: 4px solid #ffc107;
+  color: #ffca2c;
+}
+
+/* Scrollbar personalizado para la tabla */
+.table-responsive::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: rgba(177, 59, 255, 0.3);
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: rgba(177, 59, 255, 0.5);
 }

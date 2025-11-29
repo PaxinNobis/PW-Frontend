@@ -5,9 +5,10 @@ import PanelOptions from '../components/PanelOptions';
 import Videos from '../components/ProfileComponents/Videos';
 import Analiticas from './Analiticas';
 import Configuracion from './Configuracion';
+import ConfiguracionNiveles from './ConfiguracionNiveles';
 import GestionRegalos from './GestionRegalos';
 
-const PanelControl = function(){
+const PanelControl = function () {
   type Stream = { id: number; title: string; viewers: number; status: 'live' | 'idle' | 'offline' };
   const mockStreams: Stream[] = [
     { id: 1, title: 'Mi stream en vivo', viewers: 120, status: 'live' },
@@ -31,21 +32,21 @@ const PanelControl = function(){
         <h5 className="card-title">Vista previa del Stream</h5>
         <p className="text-muted">Aquí aparecerá la vista previa y controles del stream.</p>
         <div className="mt-3">
-                      <p className="mb-2">
-                        <small className="text-muted">Horas restantes para acceder al siguiente nivel:</small>
-                      </p>
-                      <div className="progress profile-progress-bar">
-                        <div 
-                          className="progress-bar bg-success profile-progress-value" 
-                          role="progressbar" 
-                          aria-valuenow={30} 
-                          aria-valuemin={0} 
-                          aria-valuemax={100}
-                        >
-                          65%
-                        </div>
-                      </div>
-                    </div>
+          <p className="mb-2">
+            <small className="text-muted">Horas restantes para acceder al siguiente nivel:</small>
+          </p>
+          <div className="progress profile-progress-bar">
+            <div
+              className="progress-bar bg-success profile-progress-value"
+              role="progressbar"
+              aria-valuenow={30}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
+              65%
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -53,6 +54,7 @@ const PanelControl = function(){
   if (seccionActiva === 'Estadísticas') contenidoCentral = <Analiticas />;
   if (seccionActiva === 'Configuración') contenidoCentral = <Configuracion />;
   if (seccionActiva === 'Regalos') contenidoCentral = <GestionRegalos />;
+  if (seccionActiva === 'Niveles') contenidoCentral = <ConfiguracionNiveles />;
 
   return (
     <div className="container mt-4">
@@ -60,7 +62,7 @@ const PanelControl = function(){
 
       <div className="row mt-3">
         <PanelOptions
-          opciones={["Stream", "Videos", "Estadísticas", "Configuración", "Regalos"]}
+          opciones={["Stream", "Videos", "Estadísticas", "Regalos", "Niveles"]}
           onSeleccionar={(o) => setSeccionActiva(o)}
         />
 

@@ -13,6 +13,8 @@ export type Message = {
     texto: string
     hora: string
     user: User
+    level?: number
+    levelName?: string
 }
 
 export type GameTag = {

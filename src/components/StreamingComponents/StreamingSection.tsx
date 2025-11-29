@@ -1,12 +1,12 @@
-import { useState } from "react"
-import { useEffect } from "react"
+import { useState, useEffect } from "react"
 import FollowButton from "./FollowButton"
 import ProgressBar from "./ProgressBar"
 import SocialLink from "./SocialLink"
 import { Link } from "react-router-dom"
-import type { Stream } from "../../GlobalObjects/Objects_DataTypes"
-import type { User } from "../../GlobalObjects/Objects_DataTypes"
+import type { Stream, User } from "../../GlobalObjects/Objects_DataTypes"
 import "./StreamingSection.css"
+import { getStreamerLoyaltyLevels, type LoyaltyLevel } from "../../services/loyalty.service"
+import { getUserPoints } from "../../services/points.service"
 
 interface StreamingSectionProps {
     stream: Stream
@@ -14,13 +14,19 @@ interface StreamingSectionProps {
     GetUser: () => User | null
     doFollowing: (user: User) => void
 }
+
 const StreamingSection = (props: StreamingSectionProps) => {
     const DivisiónAproximada = (dividendo: number, divisor: number, decimas: number) => {
         const cociente = dividendo / divisor;
         return (cociente.toFixed(decimas))
     }
+
     const [Issighting, SetIssighting] = useState<boolean>(true)
+    const [loyaltyLevels, setLoyaltyLevels] = useState<LoyaltyLevel[]>([]);
+    const [currentPoints, setCurrentPoints] = useState<number>(0);
+
     const user = props.GetUser()
+
     useEffect(() => {
         SetIssighting(true)
         if (!user) {
@@ -30,6 +36,33 @@ const StreamingSection = (props: StreamingSectionProps) => {
             SetIssighting(false)
         }
     }, [user, props.stream]);
+
+    // Fetch loyalty levels and user points
+    useEffect(() => {
+        const fetchData = async () => {
+            if (props.stream.user.id) {
+                try {
+                    // Fetch levels
+                    const levels = await getStreamerLoyaltyLevels(props.stream.user.id.toString());
+                    const sortedLevels = levels.sort((a, b) => a.puntosRequeridos - b.puntosRequeridos);
+                    setLoyaltyLevels(sortedLevels);
+
+                    // Fetch user points if logged in
+                    if (user) {
+                        const pointsData = await getUserPoints();
+                        const streamerPoints = pointsData.byStreamer.find(
+                            p => p.streamerId === props.stream.user.id.toString()
+                        );
+                        setCurrentPoints(streamerPoints ? streamerPoints.points : 0);
+                    }
+                } catch (error) {
+                    console.error("Error fetching loyalty data:", error);
+                }
+            }
+        };
+        fetchData();
+    }, [props.stream.user.id, user?.id]); // Add user.id dependency to refetch if user changes
+
     const isFollowing = () => {
         let following = false
         for (let i = 0; i < props.following.length; i++) {
@@ -39,6 +72,47 @@ const StreamingSection = (props: StreamingSectionProps) => {
         }
         return following
     }
+
+    // Calculate progress
+    const getViewerProgress = () => {
+        if (!user) return { current: 0, max: 100, topic: "puntos" };
+
+        // Use fetched points
+        const points = currentPoints;
+
+        if (loyaltyLevels.length === 0) return { current: points, max: 100, topic: "puntos" };
+
+        // Find current and next level
+        let currentLvl = null;
+        let nextLvl = null;
+
+        for (let i = 0; i < loyaltyLevels.length; i++) {
+            if (points >= loyaltyLevels[i].puntosRequeridos) {
+                currentLvl = loyaltyLevels[i];
+            } else {
+                nextLvl = loyaltyLevels[i];
+                break;
+            }
+        }
+
+        // If no next level, we are at max
+        if (!nextLvl) {
+            return {
+                current: points,
+                max: points,
+                topic: `puntos (Nivel Máximo: ${currentLvl?.nombre || 'Leyenda'})`
+            };
+        }
+
+        return {
+            current: points,
+            max: nextLvl.puntosRequeridos,
+            topic: `puntos para ${nextLvl.nombre}`
+        };
+    };
+
+    const progress = getViewerProgress();
+
     return (
         <div className="MiddleSide">
             <div className="VideoPlace">
@@ -104,13 +178,9 @@ const StreamingSection = (props: StreamingSectionProps) => {
                                     <hr className="my-3" />
                                     <h5 className="TextBox mb-2">Mi Progreso como Espectador</h5>
                                     <ProgressBar
-                                        actual={(() => {
-                                            if (!Array.isArray(user.messagessent)) return 0;
-                                            const entry = user.messagessent.find(m => m && m[1] && m[1].id === props.stream.user.id);
-                                            return entry ? entry[0] : 0;
-                                        })()}
-                                        max={100}
-                                        topic={"mensajes"}
+                                        actual={progress.current}
+                                        max={progress.max}
+                                        topic={progress.topic}
                                     ></ProgressBar>
                                 </>
                             )}

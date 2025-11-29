@@ -7,6 +7,8 @@ import type { Message } from "../../GlobalObjects/Objects_DataTypes"
 import type { User } from "../../GlobalObjects/Objects_DataTypes"
 import type { Stream } from "../../GlobalObjects/Objects_DataTypes"
 import "./ChatSection.css"
+import { getStreamerLoyaltyLevels, type LoyaltyLevel } from "../../services/loyalty.service"
+import { getUserPoints } from "../../services/points.service"
 
 interface ChatSectionProps {
     GetUser: () => User | null
@@ -24,10 +26,76 @@ const ChatSection = (props: ChatSectionProps) => {
     const messageKeysRef = useRef<Set<string>>(new Set())
     const user = props.GetUser()
     const doChattingRef = useRef(props.doChatting)
+    const [loyaltyLevels, setLoyaltyLevels] = useState<LoyaltyLevel[]>([]);
+    const [currentPoints, setCurrentPoints] = useState<number>(0);
 
     useEffect(() => {
         doChattingRef.current = props.doChatting
     }, [props.doChatting])
+
+    // Fetch loyalty levels and points
+    useEffect(() => {
+        const fetchData = async () => {
+            if (props.stream.user.id) {
+                try {
+                    console.log(`Fetching loyalty levels for streamer: ${props.stream.user.id}`);
+                    const levels = await getStreamerLoyaltyLevels(props.stream.user.id.toString());
+                    console.log("Loyalty levels fetched:", levels);
+                    const sortedLevels = levels.sort((a, b) => a.puntosRequeridos - b.puntosRequeridos);
+                    setLoyaltyLevels(sortedLevels);
+
+                    if (user) {
+                        const pointsData = await getUserPoints();
+                        console.log("User points fetched:", pointsData);
+                        const streamerPoints = pointsData.byStreamer.find(
+                            p => p.streamerId === props.stream.user.id.toString()
+                        );
+                        console.log("Points for this streamer:", streamerPoints);
+                        setCurrentPoints(streamerPoints ? streamerPoints.points : 0);
+                    }
+                } catch (error) {
+                    console.error("Error fetching loyalty data:", error);
+                }
+            }
+        };
+        fetchData();
+    }, [props.stream.user.id, user?.id]);
+
+    const getViewerProgress = () => {
+        if (!user) return { current: 0, max: 100, topic: "puntos" };
+
+        const points = currentPoints;
+
+        if (loyaltyLevels.length === 0) return { current: points, max: 100, topic: "puntos" };
+
+        let currentLvl = null;
+        let nextLvl = null;
+
+        for (let i = 0; i < loyaltyLevels.length; i++) {
+            if (points >= loyaltyLevels[i].puntosRequeridos) {
+                currentLvl = loyaltyLevels[i];
+            } else {
+                nextLvl = loyaltyLevels[i];
+                break;
+            }
+        }
+
+        if (!nextLvl) {
+            return {
+                current: points,
+                max: points,
+                topic: `puntos (Nivel Máximo: ${currentLvl?.nombre || 'Leyenda'})`
+            };
+        }
+
+        return {
+            current: points,
+            max: nextLvl.puntosRequeridos,
+            topic: `puntos para ${nextLvl.nombre}`
+        };
+    };
+
+    const progress = getViewerProgress();
 
     const buildMessageKey = (id?: string, createdAt?: string, fallback?: string) => {
         if (id) return id
@@ -102,7 +170,8 @@ const ChatSection = (props: ChatSectionProps) => {
                         msg: {
                             texto: data.message.texto,
                             hora: data.message.hora,
-                            user: data.message.user
+                            user: data.message.user,
+                            level: data.message.user?.level || data.message.level || 1
                         },
                         key: msgKey
                     })
@@ -119,9 +188,32 @@ const ChatSection = (props: ChatSectionProps) => {
             // Escuchar nuevos mensajes
             const handleNewMessage = (data: any) => {
                 const msgKey = buildMessageKey(data.message.id, data.message.createdAt, `${data.message.texto}-${data.message.hora}`)
+                // Calculate dynamic level for current user
+                let dynamicLevel = data.message.user?.level || data.message.level || 1;
+                let dynamicLevelName = data.message.user?.levelName || data.message.levelName;
+
+                if (data.message.userId === user.id) {
+                    const newPoints = currentPoints + data.pointsEarned;
+                    // Find level based on new points
+                    let calculatedLevel = null;
+                    for (let i = 0; i < loyaltyLevels.length; i++) {
+                        if (newPoints >= loyaltyLevels[i].puntosRequeridos) {
+                            calculatedLevel = loyaltyLevels[i];
+                        } else {
+                            break;
+                        }
+                    }
+                    if (calculatedLevel) {
+                        dynamicLevel = calculatedLevel.id || 1; // Assuming ID maps to level number, or use index + 1
+                        dynamicLevelName = calculatedLevel.nombre;
+                    }
+                }
+
                 const newMessage: Message = {
                     texto: data.message.texto,
                     hora: data.message.hora,
+                    level: dynamicLevel,
+                    levelName: dynamicLevelName,
                     user: {
                         id: data.message.user.id,
                         name: data.message.user.name,
@@ -148,12 +240,14 @@ const ChatSection = (props: ChatSectionProps) => {
                         discordlink: ''
                     }
                 }
+                console.log("New Message constructed:", newMessage);
                 appendMessageIfNew(newMessage, msgKey)
 
                 // Mostrar puntos ganados si es el usuario actual
                 if (data.message.userId === user.id) {
                     if (data.pointsEarned > 0) {
                         setPointsEarned(data.pointsEarned)
+                        setCurrentPoints(prev => prev + data.pointsEarned)
                         setShowPointsBadge(true)
                         setTimeout(() => setShowPointsBadge(false), 3000)
                     }
@@ -193,12 +287,9 @@ const ChatSection = (props: ChatSectionProps) => {
             <div className="ChatTitle">
                 {user ?
                     <ProgressBar
-                        actual={(() => {
-                            const entry = user.messagessent.find(m => m[1].id === props.stream.user.id);
-                            return entry ? entry[0] : 0;
-                        })()}
-                        max={100}
-                        topic={"mensajes"}
+                        actual={progress.current}
+                        max={progress.max}
+                        topic={progress.topic}
                     />
                     : ""}
                 {showPointsBadge && pointsEarned > 0 && (
@@ -211,7 +302,7 @@ const ChatSection = (props: ChatSectionProps) => {
                 {
                     messages.map((mensaje: Message, index: number) => {
                         return (
-                            <ChatMessage key={`msg-${index}`} mensaje={mensaje} />
+                            <ChatMessage key={`msg-${index}`} mensaje={mensaje} loyaltyLevels={loyaltyLevels} />
                         )
                     })
                 }

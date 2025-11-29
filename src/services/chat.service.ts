@@ -1,11 +1,14 @@
 // Servicio de Chat con WebSocket Nativo
-import { API_CONFIG } from '../config/api.config';
+import { API_CONFIG, getAuthHeaders } from '../config/api.config';
+import { apiPost, apiGet, apiDelete } from '../utils/api.utils';
 
 let socket: WebSocket | null = null;
 let isConnected = false;
 let messageCallbacks: Array<(data: SendMessageResponse) => void> = [];
 let historyCallbacks: Array<(messages: any[]) => void> = [];
 let userJoinedCallbacks: Array<(data: { userId: string; userName: string }) => void> = [];
+let viewerCountCallbacks: Array<(count: number) => void> = [];
+let typingCallbacks: Array<(data: { userId: string; userName: string; isTyping: boolean }) => void> = [];
 let userLeftCallbacks: Array<(data: { userId: string; userName: string }) => void> = [];
 let currentStreamId: string | null = null;
 
@@ -19,6 +22,8 @@ export interface ChatMessage {
     id: string;
     name: string;
     pfp: string;
+    level?: number;
+    levelName?: string;
   };
   createdAt: Date;
 }
@@ -81,6 +86,28 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
           console.log('Unido al chat:', data.streamerName);
           currentStreamId = data.streamId;
           break;
+        case 'viewer_joined':
+          console.log('Viewer unido:', data.viewer.name);
+          userJoinedCallbacks.forEach(callback => callback({ userId: data.viewer.id, userName: data.viewer.name }));
+          if (data.newCount !== undefined) {
+            viewerCountCallbacks.forEach(callback => callback(data.newCount));
+          }
+          break;
+        case 'viewer_left':
+          console.log('Viewer salió:', data.viewerId);
+          userLeftCallbacks.forEach(callback => callback({ userId: data.viewerId, userName: '' }));
+          if (data.newCount !== undefined) {
+            viewerCountCallbacks.forEach(callback => callback(data.newCount));
+          }
+          break;
+        case 'viewer_count_update':
+          console.log('Actualización de viewers:', data.count);
+          viewerCountCallbacks.forEach(callback => callback(data.count));
+          break;
+        case 'typing':
+          console.log('Usuario escribiendo:', data.userName);
+          typingCallbacks.forEach(callback => callback({ userId: data.userId, userName: data.userName, isTyping: data.isTyping }));
+          break;
         case 'history':
           console.log('Historial de mensajes recibido:', data.messages);
           // Convertir historial al formato del frontend
@@ -94,7 +121,9 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
               user: {
                 id: msg.author.id,
                 name: msg.author.name,
-                pfp: msg.author.pfp || 'https://via.placeholder.com/40'
+                pfp: msg.author.pfp || 'https://via.placeholder.com/40',
+                level: Number(msg.author.level) || 1,
+                levelName: msg.author.levelName
               },
               createdAt: new Date(msg.createdAt)
             },
@@ -115,7 +144,9 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
               user: {
                 id: data.message.author.id,
                 name: data.message.author.name,
-                pfp: data.message.author.pfp || 'https://via.placeholder.com/40'
+                pfp: data.message.author.pfp || 'https://via.placeholder.com/40',
+                level: Number(data.message.author.level) || 1,
+                levelName: data.message.author.levelName
               },
               createdAt: new Date(data.message.createdAt)
             },
@@ -179,7 +210,7 @@ export const disconnectFromChat = () => {
 };
 
 /**
- * Enviar mensaje al chat
+ * Enviar mensaje al chat (WebSocket)
  * @returns true si se envió por WebSocket, false si se manejó localmente
  */
 export const sendMessage = (texto: string): boolean => {
@@ -255,19 +286,36 @@ export const onMessageDeleted = (callback: (data: { messageId: string }) => void
 };
 
 /**
+ * Escuchar actualizaciones del contador de viewers
+ */
+export const onViewerCountUpdate = (callback: (count: number) => void) => {
+  viewerCountCallbacks.push(callback);
+  return () => {
+    viewerCountCallbacks = viewerCountCallbacks.filter(cb => cb !== callback);
+  };
+};
+
+/**
  * Indicar que el usuario está escribiendo
  */
 export const sendTyping = (isTyping: boolean) => {
-  // El backend actual no soporta eventos "typing". Se deja como no-op para evitar
-  // enviar tipos desconocidos que provoquen errores.
-  return;
+  if (socket && isConnected) {
+    const typingPayload = {
+      type: 'typing',
+      isTyping: isTyping
+    };
+    socket.send(JSON.stringify(typingPayload));
+  }
 };
 
 /**
  * Escuchar cuando alguien está escribiendo
  */
 export const onTyping = (callback: (data: { userId: string; userName: string; isTyping: boolean }) => void) => {
-  // Implementar cuando sea necesario
+  typingCallbacks.push(callback);
+  return () => {
+    typingCallbacks = typingCallbacks.filter(cb => cb !== callback);
+  };
 };
 
 /**
@@ -275,4 +323,32 @@ export const onTyping = (callback: (data: { userId: string; userName: string; is
  */
 export const getSocket = (): WebSocket | null => {
   return socket;
+};
+
+// ==========================================
+// MÉTODOS REST (Nuevos)
+// ==========================================
+
+/**
+ * Enviar mensaje vía REST (alternativa a WebSocket)
+ */
+export const sendMessageRest = async (streamId: string, texto: string): Promise<SendMessageResponse> => {
+  const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CHAT_SEND}`;
+  return apiPost<SendMessageResponse>(url, { streamId, texto }, getAuthHeaders());
+};
+
+/**
+ * Obtener historial de mensajes vía REST
+ */
+export const getChatHistory = async (streamId: string, limit = 50, offset = 0): Promise<{ messages: ChatMessage[], total: number }> => {
+  const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CHAT_MESSAGES(streamId)}?limit=${limit}&offset=${offset}`;
+  return apiGet<{ messages: ChatMessage[], total: number }>(url, getAuthHeaders());
+};
+
+/**
+ * Eliminar mensaje vía REST
+ */
+export const deleteMessage = async (messageId: string): Promise<{ success: boolean; message: string }> => {
+  const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CHAT_DELETE_MESSAGE(messageId)}`;
+  return apiDelete<{ success: boolean; message: string }>(url, getAuthHeaders());
 };

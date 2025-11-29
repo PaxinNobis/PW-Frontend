@@ -2,6 +2,7 @@
 
 import { API_CONFIG, getAuthHeaders } from '../config/api.config';
 import { apiGet, apiPost } from '../utils/api.utils';
+import type { SendPointsRequest, SendPointsResponse } from '../types/api';
 
 /**
  * Tipos de Puntos
@@ -57,6 +58,14 @@ export const getUserPoints = async (): Promise<UserPoints> => {
 export const earnPoints = async (data: EarnPointsRequest): Promise<EarnPointsResponse> => {
   const url = `${API_CONFIG.BASE_URL}/api/points/earn`;
   return apiPost<EarnPointsResponse>(url, data, getAuthHeaders());
+};
+
+/**
+ * Enviar puntos a un streamer
+ */
+export const sendPoints = async (data: SendPointsRequest): Promise<SendPointsResponse> => {
+  const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.POINTS_SEND}`;
+  return apiPost<SendPointsResponse>(url, data, getAuthHeaders());
 };
 
 /**

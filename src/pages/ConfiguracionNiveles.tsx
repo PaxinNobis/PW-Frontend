@@ -1,77 +1,200 @@
-import { useState } from 'react'
-import type { Nivel } from '../css/types'
-import { FilaNivel } from './FilaNivel'
+import { useState, useEffect } from 'react';
+import './ConfiguracionNiveles.css';
+import { getLoyaltyLevels, updateLoyaltyLevels, type LoyaltyLevel } from '../services/loyalty.service';
 
-export const ConfiguracionNiveles = function(){
-  const nivelesIniciales: Nivel[] = [
-    { id: 1, nombre: 'Bronce', puntosRequeridos: 100, recompensa: 'Badge Bronce' },
-    { id: 2, nombre: 'Plata', puntosRequeridos: 250, recompensa: 'Badge Plata' },
-    { id: 3, nombre: 'Oro', puntosRequeridos: 500, recompensa: 'Badge Oro' },
-    { id: 4, nombre: 'Platino', puntosRequeridos: 1000, recompensa: 'Badge Platino' },
-    { id: 5, nombre: 'Diamante', puntosRequeridos: 2000, recompensa: 'Badge Diamante' },
-  ];
+const ConfiguracionNiveles = () => {
+  const [niveles, setNiveles] = useState<LoyaltyLevel[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const [niveles, setNiveles] = useState<Nivel[]>(nivelesIniciales);
+  useEffect(() => {
+    loadLevels();
+  }, []);
 
-  // Agregar nuevo nivel
-  const agregarNivel = () => {
-    const nuevoId = niveles.length + 1
-    setNiveles([
-      ...niveles,
-      { id: nuevoId, nombre: `Nivel ${nuevoId}`, puntosRequeridos: 0, recompensa: '' },
-    ])
-  }
+  const loadLevels = async () => {
+    try {
+      setLoading(true);
+      const data = await getLoyaltyLevels();
+      // Ensure we have at least 5 levels or use the fetched ones
+      if (data && data.length > 0) {
+        // Map to ensure all fields exist
+        const mapped = data.map((l, index) => ({
+          id: l.id || index + 1,
+          nombre: l.nombre || '',
+          puntosRequeridos: l.puntosRequeridos || 0,
+          recompensa: l.recompensa || ''
+        }));
+        setNiveles(mapped);
+      } else {
+        // Default levels if none exist
+        setNiveles([
+          { id: 1, nombre: 'Novato', puntosRequeridos: 0, recompensa: 'Badge Novato' },
+          { id: 2, nombre: 'Fan', puntosRequeridos: 100, recompensa: 'Badge Fan' },
+          { id: 3, nombre: 'Super Fan', puntosRequeridos: 500, recompensa: 'Acceso a sorteos' },
+          { id: 4, nombre: 'Experto', puntosRequeridos: 1000, recompensa: 'VIP' },
+          { id: 5, nombre: 'Leyenda', puntosRequeridos: 5000, recompensa: 'Moderador' },
+        ]);
+      }
+    } catch (err) {
+      console.error('Error loading levels:', err);
+      setError('No se pudieron cargar los niveles. Usando valores por defecto.');
+      // Fallback defaults
+      setNiveles([
+        { id: 1, nombre: 'Novato', puntosRequeridos: 0, recompensa: 'Badge Novato' },
+        { id: 2, nombre: 'Fan', puntosRequeridos: 100, recompensa: 'Badge Fan' },
+        { id: 3, nombre: 'Super Fan', puntosRequeridos: 500, recompensa: 'Acceso a sorteos' },
+        { id: 4, nombre: 'Experto', puntosRequeridos: 1000, recompensa: 'VIP' },
+        { id: 5, nombre: 'Leyenda', puntosRequeridos: 5000, recompensa: 'Moderador' },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Actualizar datos de un nivel desde FilaNivel
-  const actualizarNivel = (id: number, campo: keyof Nivel, valor: string | number) => {
-    const nuevosNiveles = niveles.map(nivel =>
-      nivel.id === id ? { ...nivel, [campo]: valor } : nivel
-    )
-    setNiveles(nuevosNiveles)
-  }
+  const handleUpdate = (id: number, field: keyof LoyaltyLevel, value: string | number) => {
+    setNiveles(prev => prev.map(n => n.id === id ? { ...n, [field]: value } : n));
+  };
 
-  // Guardar cambios (solo simulado)
-  const guardarCambios = () => {
-    console.log('Niveles guardados:', niveles)
+  const handleAddLevel = () => {
+    const newId = niveles.length > 0 ? Math.max(...niveles.map(n => n.id || 0)) + 1 : 1;
+    setNiveles([...niveles, { id: newId, nombre: '', puntosRequeridos: 0, recompensa: '' }]);
+  };
+
+  const handleDeleteLevel = (id: number) => {
+    if (confirm('¿Estás seguro de que quieres eliminar este nivel?')) {
+      setNiveles(niveles.filter(n => n.id !== id));
+    }
+  };
+
+  const saveAllLevels = async () => {
+    try {
+      setSaving(true);
+      setError(null);
+      setSuccessMessage(null);
+
+      // Send levels without ID if backend doesn't need it, or just send as is.
+      // The interface has optional ID.
+      await updateLoyaltyLevels(niveles);
+
+      setSuccessMessage('Configuración guardada exitosamente.');
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err) {
+      console.error('Error saving levels:', err);
+      setError('Error al guardar la configuración.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center p-5 text-white">Cargando configuración...</div>;
   }
 
   return (
-    <div className="container my-4">
-      <h4 className="mb-3">Configuración de Niveles de Lealtad</h4>
-
-      <div className="table-responsive">
-        <table className="table table-striped table-bordered">
-          <thead className="table-dark">
-            <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Puntos Requeridos</th>
-              <th>Recompensa</th>
-            </tr>
-          </thead>
-          <tbody>
-            {niveles.map(nivel => (
-              <FilaNivel
-                key={nivel.id}
-                nivel={nivel}
-                onActualizar={actualizarNivel}
-              />
-            ))}
-          </tbody>
-        </table>
+    <div className="card config-niveles-card">
+      <div className="card-header d-flex justify-content-between align-items-center">
+        <div>
+          <h3>Configuración de Niveles de Lealtad</h3>
+          <p className="text-muted mb-0">Define los niveles y recompensas para tus seguidores más fieles</p>
+        </div>
+        <button className="btn btn-outline-primary btn-sm" onClick={handleAddLevel}>
+          <i className="bi bi-plus-lg me-1"></i> Agregar Nivel
+        </button>
       </div>
 
-      <div className="d-flex mt-3">
-        <button className="btn btn-success me-2" onClick={agregarNivel}>
-          + Agregar Nivel
-        </button>
-        <button className="btn btn-primary" onClick={guardarCambios}>
-          Guardar Cambios
-        </button>
+      <div className="card-body">
+        {error && <div className="alert alert-danger">{error}</div>}
+        {successMessage && <div className="alert alert-success">{successMessage}</div>}
+
+        <div className="table-responsive">
+          <table className="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>Nombre del Nivel</th>
+                <th>Puntos Requeridos</th>
+                <th>Recompensa</th>
+                <th style={{ width: '100px' }}>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {niveles.map((nivel) => (
+                <tr key={nivel.id || Math.random()}>
+                  <td>
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      value={nivel.nombre}
+                      onChange={(e) => handleUpdate(nivel.id!, 'nombre', e.target.value)}
+                      placeholder="Nombre del nivel"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      className="form-control form-control-sm"
+                      value={nivel.puntosRequeridos}
+                      onChange={(e) => handleUpdate(nivel.id!, 'puntosRequeridos', parseInt(e.target.value) || 0)}
+                      placeholder="0"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      value={nivel.recompensa}
+                      onChange={(e) => handleUpdate(nivel.id!, 'recompensa', e.target.value)}
+                      placeholder="Recompensa"
+                    />
+                  </td>
+                  <td>
+                    <button
+                      className="btn btn-outline-danger btn-sm"
+                      onClick={() => handleDeleteLevel(nivel.id!)}
+                      title="Eliminar nivel"
+                    >
+                      <i className="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {niveles.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="text-center py-4 text-muted">
+                    No hay niveles configurados. Agrega uno nuevo.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="d-flex justify-content-between align-items-center mt-4">
+          <div className="text-muted small">
+            <i className="bi bi-info-circle me-2"></i>
+            Los cambios se aplicarán inmediatamente a todos los usuarios.
+          </div>
+          <button
+            className="btn btn-save px-4"
+            onClick={saveAllLevels}
+            disabled={saving}
+          >
+            {saving ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Guardando...
+              </>
+            ) : (
+              <>
+                <i className="bi bi-save me-2"></i> Guardar Configuración
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
-  )
-  
-}
-export default ConfiguracionNiveles;
+  );
+};
 
+export default ConfiguracionNiveles;
