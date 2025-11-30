@@ -1,0 +1,98 @@
+[
+    {
+        "id": 1,
+        "level": "Astronauta Novato",
+        "min_followers": 0,
+        "max_followers": 100,
+        "min_hours": 0,
+        "max_hours": 50
+    },
+    {
+        "id": 2,
+        "level": "Explorador Planetario",
+        "min_followers": 101,
+        "max_followers": 500,
+        "min_hours": 51,
+        "max_hours": 150
+    },
+    {
+        "id": 3,
+        "level": "Piloto Lunar",
+        "min_followers": 501,
+        "max_followers": 1500,
+        "min_hours": 151,
+        "max_hours": 300
+    },
+    {
+        "id": 4,
+        "level": "Comandante Estelar",
+        "min_followers": 1501,
+        "max_followers": 5000,
+        "min_hours": 301,
+        "max_hours": 500
+    },
+    {
+        "id": 5,
+        "level": "Coronel Galáctico",
+        "min_followers": 5001,
+        "max_followers": 15000,
+        "min_hours": 501,
+        "max_hours": 800
+    },
+    {
+        "id": 6,
+        "level": "General Cósmico",
+        "min_followers": 15001,
+        "max_followers": 50000,
+        "min_hours": 801,
+        "max_hours": 1200
+    },
+    {
+        "id": 7,
+        "level": "Señor Universal",
+        "min_followers": 50001,
+        "max_followers": 150000,
+        "min_hours": 1201,
+        "max_hours": 2000
+    },
+    {
+        "id": 8,
+        "level": "Emperador Multiversal",
+        "min_followers": 150001,
+        "max_followers": 500000,
+        "min_hours": 2001,
+        "max_hours": 3000
+    },
+    {
+        "id": 9,
+        "level": "Leyenda Omniversal",
+        "min_followers": 500001,
+        "max_followers": 1500000,
+        "min_hours": 3001,
+        "max_hours": 4500
+    },
+    {
+        "id": 10,
+        "level": "Entidad Primigenia",
+        "min_followers": 1500001,
+        "max_followers": 5000000,
+        "min_hours": 4501,
+        "max_hours": 6500
+    },
+    {
+        "id": 11,
+        "level": "Titán Dimensional",
+        "min_followers": 5000001,
+        "max_followers": 10000000,
+        "min_hours": 6501,
+        "max_hours": 9000
+    },
+    {
+        "id": 12,
+        "level": "Deidad Eterna",
+        "min_followers": 10000001,
+        "max_followers": 25000000,
+        "min_hours": 9001,
+        "max_hours": 12000
+    }
+]

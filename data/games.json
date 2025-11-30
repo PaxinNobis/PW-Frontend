@@ -1,0 +1,485 @@
+[
+    {
+        "id": 1,
+        "name": "League of Legends",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/21779-285x380.jpg",
+        "spectators": 1000,
+        "followers": 2000,
+        "tags": [
+            { "id": 1, "name": "MOBA" },
+            { "id": 2, "name": "eSports" },
+            { "id": 3, "name": "Competitivo" },
+            { "id": 9, "name": "Héroes" },
+            { "id": 12, "name": "Multijugador" }
+        ]
+    },
+    {
+        "id": 2,
+        "name": "Grand Theft Auto V",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/6521_IGDB-285x380.jpg",
+        "spectators": 1000,
+        "followers": 2000,
+        "tags": [
+            { "id": 4, "name": "Acción-Aventura" },
+            { "id": 5, "name": "Mundo abierto" },
+            { "id": 12, "name": "Multijugador" },
+            { "id": 42, "name": "Social" }
+        ]
+    },
+    {
+        "id": 3,
+        "name": "Counter-Strike 2",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/32399-285x380.jpg",
+        "spectators": 1000,
+        "followers": 2000,
+        "tags": [
+            { "id": 7, "name": "FPS" },
+            { "id": 8, "name": "Táctico" },
+            { "id": 3, "name": "Competitivo" },
+            { "id": 12, "name": "Multijugador" }
+        ]
+    },
+    {
+        "id": 4,
+        "name": "VALORANT",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/516575-285x380.jpg",
+        "spectators": 1000,
+        "followers": 2000,
+        "tags": [
+            { "id": 7, "name": "FPS" },
+            { "id": 8, "name": "Táctico" },
+            { "id": 3, "name": "Competitivo" },
+            { "id": 43, "name": "Cooperativo" }
+        ]
+    },
+    {
+        "id": 5,
+        "name": "Dota 2",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/29595-285x380.jpg",
+        "spectators": 1000,
+        "followers": 2000,
+        "tags": [
+            { "id": 1, "name": "MOBA" },
+            { "id": 2, "name": "eSports" },
+            { "id": 3, "name": "Competitivo" },
+            { "id": 12, "name": "Multijugador" }
+        ]
+    },
+    {
+        "id": 6,
+        "name": "Fortnite",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/33214-285x380.jpg",
+        "spectators": 1000,
+        "followers": 2000,
+        "tags": [
+            { "id": 10, "name": "Battle Royale" },
+            { "id": 11, "name": "Acción" },
+            { "id": 12, "name": "Multijugador" },
+            { "id": 43, "name": "Cooperativo" }
+        ]
+    },
+    {
+        "id": 7,
+        "name": "World of Warcraft",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/18122-285x380.jpg",
+        "spectators": 1000,
+        "followers": 2000,
+        "tags": [
+            { "id": 13, "name": "MMORPG" },
+            { "id": 14, "name": "Rol" },
+            { "id": 15, "name": "Fantástico" },
+            { "id": 12, "name": "Multijugador" }
+        ]
+    },
+    {
+        "id": 8,
+        "name": "Minecraft",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/27471_IGDB-285x380.jpg",
+        "spectators": 1000,
+        "followers": 2000,
+        "tags": [
+            { "id": 16, "name": "Sandbox" },
+            { "id": 17, "name": "Construcción" },
+            { "id": 18, "name": "Supervivencia" },
+            { "id": 36, "name": "Creativo" }
+        ]
+    },
+    {
+        "id": 9,
+        "name": "Call of Duty: Warzone",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/512710-285x380.jpg",
+        "spectators": 1000,
+        "followers": 2000,
+        "tags": [
+            { "id": 7, "name": "FPS" },
+            { "id": 10, "name": "Battle Royale" },
+            { "id": 3, "name": "Competitivo" },
+            { "id": 12, "name": "Multijugador" }
+        ]
+    },
+    {
+        "id": 10,
+        "name": "Apex Legends",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/511224-285x380.jpg",
+        "spectators": 1000,
+        "followers": 2000,
+        "tags": [
+            { "id": 7, "name": "FPS" },
+            { "id": 10, "name": "Battle Royale" },
+            { "id": 3, "name": "Competitivo" },
+            { "id": 43, "name": "Cooperativo" }
+        ]
+    },
+    {
+        "id": 11,
+        "name": "Elden Ring: Nightreign",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/982348888_IGDB-285x380.jpg",
+        "spectators": 1000,
+        "followers": 2000,
+        "tags": [
+            { "id": 6, "name": "Rol-play" },
+            { "id": 14, "name": "Rol" },
+            { "id": 24, "name": "Aventura" },
+            { "id": 44, "name": "Investigación" }
+        ]
+    },
+    {
+        "id": 12,
+        "name": "Path of Exile 2",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/1702520304_IGDB-285x380.jpg",
+        "spectators": 1000,
+        "followers": 2000,
+        "tags": [
+            { "id": 19, "name": "ARPG" },
+            { "id": 13, "name": "MMORPG" },
+            { "id": 14, "name": "Rol" }
+        ]
+    },
+    {
+        "id": 13,
+        "name": "Rocket League",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/30921-285x380.jpg",
+        "spectators": 1000,
+        "followers": 2000,
+        "tags": [
+            { "id": 20, "name": "Deporte" },
+            { "id": 21, "name": "Vehículos" },
+            { "id": 3, "name": "Competitivo" }
+        ]
+    },
+    {
+        "id": 14,
+        "name": "Monster Hunter Wilds",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/1286077738_IGDB-285x380.jpg",
+        "spectators": 1000,
+        "followers": 2000,
+        "tags": [
+            { "id": 22, "name": "Caza" },
+            { "id": 24, "name": "Aventura" },
+            { "id": 43, "name": "Cooperativo" }
+        ]
+    },
+    {
+        "id": 15,
+        "name": "Street Fighter 6",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/55453844_IGDB-285x380.jpg",
+        "spectators": 1000,
+        "followers": 2000,
+        "tags": [
+            { "id": 23, "name": "Lucha" },
+            { "id": 3, "name": "Competitivo" },
+            { "id": 12, "name": "Multijugador" }
+        ]
+    },
+    {
+        "id": 16,
+        "name": "Overwatch 2",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/515025-285x380.jpg",
+        "spectators": 1000,
+        "followers": 2000,
+        "tags": [
+            { "id": 7, "name": "FPS" },
+            { "id": 3, "name": "Competitivo" },
+            { "id": 43, "name": "Cooperativo" }
+        ]
+    },
+    {
+        "id": 17,
+        "name": "Rust",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/263490_IGDB-285x380.jpg",
+        "spectators": 1000,
+        "followers": 2000,
+        "tags": [
+            { "id": 16, "name": "Sandbox" },
+            { "id": 18, "name": "Supervivencia" },
+            { "id": 43, "name": "Cooperativo" }
+        ]
+    },
+    {
+        "id": 18,
+        "name": "Tom Clancy's Rainbow Six Siege",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/460630-285x380.jpg",
+        "spectators": 1000,
+        "followers": 2000,
+        "tags": [
+            { "id": 7, "name": "FPS" },
+            { "id": 8, "name": "Táctico" },
+            { "id": 43, "name": "Cooperativo" }
+        ]
+    },
+    {
+        "id": 19,
+        "name": "Marvel Rivals",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/1264310518-285x380.jpg",
+        "spectators": 1000,
+        "followers": 2000,
+        "tags": [
+            { "id": 25, "name": "Personajes de cómic" },
+            { "id": 3, "name": "Competitivo" },
+            { "id": 24, "name": "Aventura" }
+        ]
+    },
+    {
+        "id": 20,
+        "name": "EA Sports FC 25",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/2011938005_IGDB-285x380.jpg",
+        "spectators": 1000,
+        "followers": 2000,
+        "tags": [
+            { "id": 20, "name": "Deporte" },
+            { "id": 26, "name": "Fútbol" },
+            { "id": 3, "name": "Competitivo" }
+        ]
+    },
+    {
+        "id": 21,
+        "name": "Just Chatting",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/509658-285x380.jpg",
+        "spectators": 1000,
+        "followers": 2000,
+        "tags": [
+            { "id": 28, "name": "IRL" },
+            { "id": 15, "name": "Fantástico" },
+            { "id": 41, "name": "Conversación" },
+            { "id": 42, "name": "Social" }
+        ]
+    },
+    {
+        "id": 22,
+        "name": "Diablo IV",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/515024-285x380.jpg",
+        "spectators": 850,
+        "followers": 1800,
+        "tags": [
+            { "id": 19, "name": "ARPG" },
+            { "id": 15, "name": "Fantástico" },
+            { "id": 14, "name": "Rol" },
+            { "id": 18, "name": "Supervivencia" }
+        ]
+    },
+    {
+        "id": 23,
+        "name": "Baldur's Gate 3",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/512923_IGDB-285x380.jpg",
+        "spectators": 920,
+        "followers": 2200,
+        "tags": [
+            { "id": 6, "name": "Rol-play" },
+            { "id": 29, "name": "Juego de Rol" },
+            { "id": 15, "name": "Fantástico" },
+            { "id": 43, "name": "Cooperativo" }
+        ]
+    },
+    {
+        "id": 24,
+        "name": "StarCraft II",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/490422-285x380.jpg",
+        "spectators": 450,
+        "followers": 1500,
+        "tags": [
+            { "id": 30, "name": "Estrategia" },
+            { "id": 31, "name": "Competitivo" },
+            { "id": 12, "name": "Multijugador" }
+        ]
+    },
+    {
+        "id": 25,
+        "name": "The Sims 4",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/369418-285x380.jpg",
+        "spectators": 780,
+        "followers": 1900,
+        "tags": [
+            { "id": 27, "name": "Simulación" },
+            { "id": 36, "name": "Creativo" },
+            { "id": 16, "name": "Sandbox" }
+        ]
+    },
+    {
+        "id": 26,
+        "name": "Resident Evil 6",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/1820378900_IGDB-285x380.jpg",
+        "spectators": 620,
+        "followers": 1600,
+        "tags": [
+            { "id": 34, "name": "Terror" },
+            { "id": 11, "name": "Acción" },
+            { "id": 24, "name": "Aventura" }
+        ]
+    },
+    {
+        "id": 27,
+        "name": "Beat Saber",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/460316-285x380.jpg",
+        "spectators": 380,
+        "followers": 1200,
+        "tags": [
+            { "id": 35, "name": "Música" },
+            { "id": 11, "name": "Acción" },
+            { "id": 27, "name": "Simulación" }
+        ]
+    },
+    {
+        "id": 29,
+        "name": "Cyberpunk 2077",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/65876_IGDB-285x380.jpg",
+        "spectators": 710,
+        "followers": 1750,
+        "tags": [
+            { "id": 5, "name": "Mundo abierto" },
+            { "id": 6, "name": "Rol-play" },
+            { "id": 11, "name": "Acción" },
+            { "id": 38, "name": "Tecnología" }
+        ]
+    },
+    {
+        "id": 30,
+        "name": "Among Us",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/510218-285x380.jpg",
+        "spectators": 550,
+        "followers": 1400,
+        "tags": [
+            { "id": 39, "name": "Humor" },
+            { "id": 42, "name": "Social" },
+            { "id": 44, "name": "Investigación" }
+        ]
+    },
+    {
+        "id": 31,
+        "name": "Civilization VI",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/490377-285x380.jpg",
+        "spectators": 420,
+        "followers": 1300,
+        "tags": [
+            { "id": 30, "name": "Estrategia" },
+            { "id": 40, "name": "Educación" },
+            { "id": 27, "name": "Simulación" }
+        ]
+    },
+    {
+        "id": 32,
+        "name": "Phasmophobia",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/518184-285x380.jpg",
+        "spectators": 680,
+        "followers": 1650,
+        "tags": [
+            { "id": 34, "name": "Terror" },
+            { "id": 44, "name": "Investigación" },
+            { "id": 43, "name": "Cooperativo" }
+        ]
+    },
+    {
+        "id": 33,
+        "name": "TEKKEN 8",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/538054672_IGDB-285x380.jpg",
+        "spectators": 590,
+        "followers": 1550,
+        "tags": [
+            { "id": 23, "name": "Lucha" },
+            { "id": 31, "name": "Competitivo" },
+            { "id": 12, "name": "Multijugador" }
+        ]
+    },
+    {
+        "id": 34,
+        "name": "Sea of Thieves",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/490377-285x380.jpg",
+        "spectators": 730,
+        "followers": 1850,
+        "tags": [
+            { "id": 24, "name": "Aventura" },
+            { "id": 43, "name": "Cooperativo" },
+            { "id": 16, "name": "Sandbox" }
+        ]
+    },
+    {
+        "id": 35,
+        "name": "Hearthstone",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/138585-285x380.jpg",
+        "spectators": 480,
+        "followers": 1450,
+        "tags": [
+            { "id": 30, "name": "Estrategia" },
+            { "id": 15, "name": "Fantástico" },
+            { "id": 31, "name": "Competitivo" }
+        ]
+    },
+    {
+        "id": 36,
+        "name": "Geometry Dash",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/460951_IGDB-285x380.jpg",
+        "spectators": 320,
+        "followers": 1100,
+        "tags": [
+            { "id": 35, "name": "Música" },
+            { "id": 36, "name": "Creativo" }
+        ]
+    },
+    {
+        "id": 37,
+        "name": "Fall Guys",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/512980-285x380.jpg",
+        "spectators": 670,
+        "followers": 1700,
+        "tags": [
+            { "id": 39, "name": "Humor" },
+            { "id": 42, "name": "Social" },
+            { "id": 31, "name": "Competitivo" }
+        ]
+    },
+    {
+        "id": 38,
+        "name": "Destiny 2",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/497057-285x380.jpg",
+        "spectators": 810,
+        "followers": 1950,
+        "tags": [
+            { "id": 7, "name": "FPS" },
+            { "id": 13, "name": "MMORPG" },
+            { "id": 43, "name": "Cooperativo" }
+        ]
+    },
+    {
+        "id": 39,
+        "name": "Genshin Impact",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/513181_IGDB-285x380.jpg",
+        "spectators": 890,
+        "followers": 2050,
+        "tags": [
+            { "id": 6, "name": "Rol-play" },
+            { "id": 15, "name": "Fantástico" },
+            { "id": 5, "name": "Mundo abierto" }
+        ]
+    },
+    {
+        "id": 40,
+        "name": "Team Fortress 2",
+        "photo": "https://static-cdn.jtvnw.net/ttv-boxart/65876_IGDB-285x380.jpg",
+        "spectators": 290,
+        "followers": 1250,
+        "tags": [
+            { "id": 7, "name": "FPS" },
+            { "id": 39, "name": "Humor" },
+            { "id": 43, "name": "Cooperativo" }
+        ]
+    }
+]

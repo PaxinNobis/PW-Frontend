@@ -1,0 +1,50 @@
+[
+	{
+		"id": 1,
+		"name": "Starter pack",
+		"value": 30,
+        "initialprice" : 1.50, 
+		"finalprice": 1.43,
+        "discount": 5
+	},
+    {
+		"id": 2,
+		"name": "Bronze pack",
+		"value": 350,
+		"initialprice" : 17.50, 
+		"finalprice": 16.10,
+        "discount": 8
+	},
+    {
+		"id": 3,
+		"name": "Silver pack",
+		"value": 700,
+		"initialprice" : 35, 
+		"finalprice": 30.80,
+        "discount": 12
+	},
+    {
+		"id": 4,
+		"name": "Gold pack",
+		"value": 1500,
+		"initialprice" : 75, 
+		"finalprice": 63,
+        "discount": 16
+	},
+    {
+		"id": 5,
+		"name": "Platinum pack",
+        "value": 3500,
+		"initialprice" : 175, 
+		"finalprice": 140,
+        "discount": 20
+	},
+    {
+		"id": 6,
+		"name": "Galaxy pack",
+		"value": 7000,
+		"initialprice" : 350, 
+		"finalprice": 266,
+        "discount": 24
+	}
+]

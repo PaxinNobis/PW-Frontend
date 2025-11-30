@@ -1,0 +1,62 @@
+[
+    {
+        "id": 1,
+        "level": "Plutón",
+        "min_messages": 0,
+        "max_messages": 10
+    },
+    {
+        "id": 2,
+        "level": "Mercurio",
+        "min_messages": 11,
+        "max_messages": 30
+    },
+    {
+        "id": 3,
+        "level": "Marte",
+        "min_messages": 31,
+        "max_messages": 60
+    },
+    {
+        "id": 4,
+        "level": "Venus",
+        "min_messages": 61,
+        "max_messages": 120
+    },
+    {
+        "id": 5,
+        "level": "Tierra",
+        "min_messages": 121,
+        "max_messages": 250
+    },
+    {
+        "id": 6,
+        "level": "Neptuno",
+        "min_messages": 251,
+        "max_messages": 500
+    },
+    {
+        "id": 7,
+        "level": "Urano",
+        "min_messages": 501,
+        "max_messages": 1000
+    },
+    {
+        "id": 8,
+        "level": "Saturno",
+        "min_messages": 1001,
+        "max_messages": 2000
+    },
+    {
+        "id": 9,
+        "level": "Júpiter",
+        "min_messages": 2001,
+        "max_messages": 3500
+    },
+    {
+        "id": 10,
+        "level": "Sol",
+        "min_messages": 3501,
+        "max_messages": 5000
+    }
+]
