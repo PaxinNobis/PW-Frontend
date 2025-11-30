@@ -13,8 +13,8 @@ const Terms = () => {
         <div className="col-12 col-lg-10">
           {/* Req 08 */}
           <div className="text-center mb-4">
-            <img 
-              src="https://via.placeholder.com/800x300/6441a5/ffffff?text=Términos+y+Condiciones"
+            <img
+              src="https://placehold.co/800x300/6441a5/ffffff?text=Términos+y+Condiciones"
               alt="Términos y Condiciones"
               className="img-fluid rounded mb-3 terms-header-image"
             />
@@ -135,8 +135,8 @@ const Terms = () => {
 
           {/* Botón regresar */}
           <div className="text-center mt-4">
-            <button 
-              onClick={() => navigate('/')} 
+            <button
+              onClick={() => navigate('/')}
               className="btn btn-primary btn-lg"
             >
               Regresar

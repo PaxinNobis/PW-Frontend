@@ -116,14 +116,14 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
             return {
               message: {
                 id: msg.id,
-                streamId: currentStreamId || '',
+                streamId: msg.streamId || currentStreamId || '',
                 userId: msg.user?.id || msg.author?.id,
                 texto: msg.text,
                 hora: new Date(msg.createdAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
                 user: {
                   id: msg.user?.id || msg.author?.id,
                   name: msg.user?.name || msg.author?.name,
-                  pfp: msg.user?.pfp || msg.author?.pfp || 'https://via.placeholder.com/40',
+                  pfp: msg.user?.pfp || msg.author?.pfp || 'https://placehold.co/40',
                   level: Number(msg.user?.level || msg.author?.level) || 1,
                   levelName: msg.user?.levelName || msg.author?.levelName
                 },
@@ -147,7 +147,7 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
               user: {
                 id: data.message.author.id,
                 name: data.message.author.name,
-                pfp: data.message.author.pfp || 'https://via.placeholder.com/40',
+                pfp: data.message.author.pfp || 'https://placehold.co/40',
                 level: Number(data.message.author.level) || 1,
                 levelName: data.message.author.levelName
               },
@@ -311,6 +311,9 @@ export const sendTyping = (isTyping: boolean) => {
   }
 };
 
+/**
+ * Escuchar cuando alguien está escribiendo
+ */
 /**
  * Escuchar cuando alguien está escribiendo
  */

@@ -101,3 +101,42 @@ export const getStreamerGifts = async (streamerId: string): Promise<{ success: b
   const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.STREAMER_GIFTS(streamerId)}`;
   return apiGet<{ success: boolean; gifts: CustomGift[] }>(url, getAuthHeaders());
 };
+
+/**
+ * Configuración del Stream
+ */
+export interface StreamSettings {
+  title?: string;
+  gameId?: string;
+  tags?: string[];
+  iframeUrl?: string;
+  isLive?: boolean;
+}
+
+export interface UpdateStreamSettingsResponse {
+  success: boolean;
+  message: string;
+  stream: any; // Se podría tipar mejor con la interfaz Stream completa
+}
+
+/**
+ * Actualizar configuración del stream
+ */
+export const updateStreamSettings = async (settings: StreamSettings): Promise<UpdateStreamSettingsResponse> => {
+  const url = `${API_CONFIG.BASE_URL}/api/streamer/settings`;
+  return apiPut<UpdateStreamSettingsResponse>(url, settings, getAuthHeaders());
+};
+
+/**
+ * Iniciar Stream
+ */
+export const startStream = async (): Promise<UpdateStreamSettingsResponse> => {
+  return updateStreamSettings({ isLive: true });
+};
+
+/**
+ * Detener Stream
+ */
+export const stopStream = async (): Promise<UpdateStreamSettingsResponse> => {
+  return updateStreamSettings({ isLive: false });
+};

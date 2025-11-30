@@ -223,6 +223,11 @@ const ChatSection = (props: ChatSectionProps) => {
                 }
                 const deduped: { msg: Message; key: string }[] = []
                 historyMessages.forEach((data) => {
+                    // Filter by streamId to ensure we only show messages for the current stream session
+                    if (data.message.streamId && props.stream.id && data.message.streamId !== props.stream.id) {
+                        return;
+                    }
+
                     const msgKey = buildMessageKey(data.message.id, data.message.createdAt, `${data.message.texto}-${data.message.hora}`)
                     if (messageKeysRef.current.has(msgKey)) {
                         return
@@ -235,7 +240,8 @@ const ChatSection = (props: ChatSectionProps) => {
                             hora: data.message.hora,
                             user: data.message.user,
                             level: data.message.user?.level || data.message.level || 1,
-                            levelName: data.message.user?.levelName || data.message.levelName
+                            levelName: data.message.user?.levelName || data.message.levelName,
+                            streamId: data.message.streamId
                         },
                         key: msgKey
                     })
@@ -251,6 +257,11 @@ const ChatSection = (props: ChatSectionProps) => {
 
             // Escuchar nuevos mensajes
             const handleNewMessage = async (data: any) => {
+                // Filter new messages by streamId
+                if (data.message.streamId && props.stream.id && data.message.streamId !== props.stream.id) {
+                    return;
+                }
+
                 const msgKey = buildMessageKey(data.message.id, data.message.createdAt, `${data.message.texto}-${data.message.hora}`)
                 // Calculate dynamic level for current user
                 // Priority: Backend provided level -> Local calculation -> Default
@@ -378,6 +389,7 @@ const ChatSection = (props: ChatSectionProps) => {
             // Escuchar cuando alguien se va
             const unsubscribeLeave = onUserLeft(() => undefined)
             if (unsubscribeLeave) unsubscribes.push(unsubscribeLeave)
+
         } catch (error) {
             // console.error('Error al conectar WebSocket:', error)
             // console.warn('Continuando sin WebSocket. Los mensajes solo se verán localmente.')

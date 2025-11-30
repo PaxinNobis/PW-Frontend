@@ -38,6 +38,9 @@ const StreamingSection = (props: StreamingSectionProps) => {
         </div>;
     }
 
+    console.log("Stream Data in StreamingSection:", props.stream);
+    console.log("Iframe URL:", (props.stream as any).iframeUrl);
+
     useEffect(() => {
         SetIssighting(true)
         if (!user) {
@@ -172,16 +175,38 @@ const StreamingSection = (props: StreamingSectionProps) => {
 
     const progress = getViewerProgress();
 
+    // Fallback: Check localStorage for iframeUrl if it's missing from props (only for the streamer themselves)
+    const iframeUrl = (props.stream as any).iframeUrl ||
+        (user && props.stream.user.id === user.id ? localStorage.getItem('stream_iframe_url') : null);
+
     return (
         <div className="MiddleSide">
             <div className="VideoPlace">
-                <img className="VideoPlaceHolder" src={props.stream.thumbnail} alt="Stream" />
+                {iframeUrl ? (
+                    <iframe
+                        src={iframeUrl}
+                        title="Stream Video"
+                        className="w-100 h-100"
+                        style={{ aspectRatio: '16/9', border: 'none' }}
+                        allowFullScreen
+                    ></iframe>
+                ) : (
+                    <img
+                        className="VideoPlaceHolder"
+                        src={(props.stream.thumbnail || "https://placehold.co/800x450?text=No+Thumbnail").replace('via.placeholder.com', 'placehold.co')}
+                        alt="Stream"
+                    />
+                )}
             </div>
             <div className="d-flex justify-content-between my-3">
                 <div className="text-start d-flex align-items-center">
                     <div className="ImgStreamBox mx-3">
                         <Link to={`/profile/${props.stream.user.name}`}>
-                            <img className="StreamerImg" src={props.stream.user.pfp} alt="Img" />
+                            <img
+                                className="StreamerImg"
+                                src={(props.stream.user.pfp || "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-70x70.png").replace('via.placeholder.com', 'placehold.co')}
+                                alt="Img"
+                            />
                         </Link>
                     </div>
                     <div>

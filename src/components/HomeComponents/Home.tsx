@@ -13,13 +13,13 @@ import "../../GlobalObjects/Global.css"
 
 //Props
 interface HomeProps {
-    recommendedstreams : Stream[]
+  recommendedstreams: Stream[]
 }
-const Home = (props : HomeProps) => {
+const Home = (props: HomeProps) => {
   return (
     <div className='px-4'>
-        <Carousel slides={props.recommendedstreams} />
-        <Feed streams={props.recommendedstreams} />
+      <Carousel slides={props.recommendedstreams.filter(s => s.user.online)} />
+      <Feed streams={props.recommendedstreams.filter(s => s.user.online)} />
     </div>
   );
 };

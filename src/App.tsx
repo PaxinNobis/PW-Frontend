@@ -400,7 +400,7 @@ const App = () => {
                         email: s.streamer.email,
                         password: "",
                         coins: 0,
-                        pfp: "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-70x70.png",
+                        pfp: (s.streamer.pfp || "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-70x70.png").replace('via.placeholder.com', 'placehold.co'),
                         online: s.isLive,
                         bio: "",
                         followed: [],
@@ -426,7 +426,7 @@ const App = () => {
                         followers: 0,
                         tags: s.tags.map((t: any) => ({ id: parseInt(t.id) || 0, name: t.name }))
                     },
-                    thumbnail: s.thumbnail,
+                    thumbnail: (s.thumbnail || "").replace('via.placeholder.com', 'placehold.co'),
                     title: s.title,
                     viewersnumber: s.viewers,
                     viewersid: [],
@@ -468,6 +468,9 @@ const App = () => {
 
                 // Cargar following si hay usuario autenticado
                 if (posibleuser) {
+                    if (streams.length > 0) {
+                        console.log("First stream from getAllStreams:", JSON.stringify(streams[0], null, 2));
+                    }
                     try {
                         const followingData = await getFollowing();
                         const followingList = Array.isArray(followingData) ? followingData : (followingData as any).following || [];
@@ -477,7 +480,7 @@ const App = () => {
                             email: f.email,
                             password: "",
                             coins: 0,
-                            pfp: "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-70x70.png",
+                            pfp: (f.pfp || "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-70x70.png").replace('via.placeholder.com', 'placehold.co'),
                             online: f.stream?.isLive || false,
                             bio: "",
                             followed: [],
@@ -622,10 +625,17 @@ const App = () => {
             refreshUserCoins();
         };
 
+        const handleStreamUpdate = () => {
+            console.log("Stream updated event received, refreshing data...");
+            refreshUserData();
+        };
+
         window.addEventListener('userCoinsUpdated', handleCoinsUpdate);
+        window.addEventListener('streamUpdated', handleStreamUpdate);
 
         return () => {
             window.removeEventListener('userCoinsUpdated', handleCoinsUpdate);
+            window.removeEventListener('streamUpdated', handleStreamUpdate);
             clearTimeout(timer);
         };
     }, []);

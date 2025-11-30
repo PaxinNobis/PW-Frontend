@@ -15,6 +15,7 @@ export type Message = {
     user: User
     level?: number
     levelName?: string
+    streamId?: string
 }
 
 export type GameTag = {
