@@ -35,6 +35,50 @@ const PanelControl = (props: PanelControlProps) => {
           // Unwrap response if it's wrapped in { success: true, stream: ... }
           const actualStreamData = (stream as any).stream || stream;
 
+          // Si no hay stream data (null, undefined, o error), crear un stream por defecto
+          if (!actualStreamData || !actualStreamData.id) {
+            console.warn("No stream found for user, creating default offline stream");
+            const defaultStream = {
+              id: `temp-${user.id}`,
+              title: "",
+              thumbnail: "",
+              viewers: 0,
+              isLive: false,
+              user: {
+                id: user.id,
+                name: user.name,
+                email: user.email || "",
+                password: "",
+                coins: 0,
+                pfp: user.pfp || "https://placehold.co/40",
+                online: false,
+                bio: "",
+                followed: [],
+                followers: [],
+                friends: [],
+                pointsrecieved: [],
+                messagessent: [],
+                medalsrecieved: [],
+                streaminghours: 0,
+                streamerlevel: { id: 1, level: "Astronauta Novato", min_followers: 0, max_followers: 100, min_hours: 0, max_hours: 50 },
+                medalsforviewers: [],
+                clips: [],
+                xlink: "",
+                youtubelink: "",
+                instagramlink: "",
+                tiktoklink: "",
+                discordlink: ""
+              },
+              game: { name: "Just Chatting", photo: "", spectators: 0, followers: 0, tags: [] },
+              viewersnumber: 0,
+              viewersid: [],
+              messagelist: []
+            };
+            setUserStream(defaultStream as unknown as Stream);
+            setLoadingStream(false);
+            return;
+          }
+
           // Adaptar el objeto stream de la API al tipo Stream que espera ChatSection
           // La API devuelve 'streamer', pero ChatSection espera 'user'
           // Si no hay streamer, intentar usar 'user' si ya existe, o un objeto vacío para evitar crash
@@ -57,6 +101,44 @@ const PanelControl = (props: PanelControlProps) => {
           setUserStream(adaptedStream as unknown as Stream);
         } catch (error) {
           console.error("Error fetching user stream:", error);
+          // Si hay error (404 = no stream), crear un stream por defecto
+          const defaultStream = {
+            id: `temp-${user.id}`,
+            title: "",
+            thumbnail: "",
+            viewers: 0,
+            isLive: false,
+            user: {
+              id: user.id,
+              name: user.name,
+              email: user.email || "",
+              password: "",
+              coins: 0,
+              pfp: user.pfp || "https://placehold.co/40",
+              online: false,
+              bio: "",
+              followed: [],
+              followers: [],
+              friends: [],
+              pointsrecieved: [],
+              messagessent: [],
+              medalsrecieved: [],
+              streaminghours: 0,
+              streamerlevel: { id: 1, level: "Astronauta Novato", min_followers: 0, max_followers: 100, min_hours: 0, max_hours: 50 },
+              medalsforviewers: [],
+              clips: [],
+              xlink: "",
+              youtubelink: "",
+              instagramlink: "",
+              tiktoklink: "",
+              discordlink: ""
+            },
+            game: { name: "Just Chatting", photo: "", spectators: 0, followers: 0, tags: [] },
+            viewersnumber: 0,
+            viewersid: [],
+            messagelist: []
+          };
+          setUserStream(defaultStream as unknown as Stream);
         }
       }
       setLoadingStream(false);

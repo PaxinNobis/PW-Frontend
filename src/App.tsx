@@ -481,7 +481,7 @@ const App = () => {
                             password: "",
                             coins: 0,
                             pfp: (f.pfp || "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-70x70.png").replace('via.placeholder.com', 'placehold.co'),
-                            online: f.stream?.isLive || false,
+                            online: f.streams?.[0]?.isLive || false, // Usar streams[0] en lugar de stream
                             bio: "",
                             followed: [],
                             followers: [],

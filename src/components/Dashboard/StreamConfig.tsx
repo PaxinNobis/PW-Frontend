@@ -59,7 +59,11 @@ const StreamConfig: React.FC = () => {
                 }
             } catch (error) {
                 console.error("Error loading stream config data:", error);
-                setMessage({ text: "Error al cargar datos de configuración", type: 'error' });
+                // 404 es normal si el usuario no tiene stream aún, no mostrar error
+                if (!(error as any)?.message?.includes('404')) {
+                    setMessage({ text: "Error al cargar datos de configuración", type: 'error' });
+                }
+                // Si no hay stream, dejar los campos vacíos (valores por defecto ya están en useState)
             } finally {
                 setLoading(false);
             }
