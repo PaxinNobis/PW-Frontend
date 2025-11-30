@@ -604,14 +604,12 @@ const App = () => {
 
         // Escuchar evento de actualización de monedas
         const handleCoinsUpdate = (event: Event) => {
-            console.log("Evento userCoinsUpdated recibido, actualizando datos...");
+            refreshUserData();
 
-            // Actualización optimista
+            // Optimistic update for immediate feedback if cost is provided
             const customEvent = event as CustomEvent;
             if (customEvent.detail && typeof customEvent.detail.cost === 'number') {
                 const cost = customEvent.detail.cost;
-                console.log(`Aplicando actualización optimista: -${cost} monedas`);
-
                 setUser(prevUser => {
                     if (!prevUser) return null;
                     const newCoins = Math.max(0, prevUser.coins - cost);

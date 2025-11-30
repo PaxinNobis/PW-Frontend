@@ -56,24 +56,17 @@ const ChatSection = (props: ChatSectionProps) => {
         const fetchData = async () => {
             if (props.stream.user.id) {
                 try {
-                    console.log(`Fetching loyalty levels for streamer: ${props.stream.user.id}`);
                     const levels = await getStreamerLoyaltyLevels(props.stream.user.id.toString());
-                    console.log("Loyalty levels fetched:", levels);
                     const sortedLevels = levels.sort((a, b) => a.puntosRequeridos - b.puntosRequeridos);
                     setLoyaltyLevels(sortedLevels);
 
                     if (user) {
                         const pointsData = await getUserPoints();
-                        console.log("User points fetched:", pointsData);
                         const streamerId = String(props.stream.user.id);
-                        console.log("Looking for streamerId:", streamerId);
-                        console.log("Available streamerIds:", pointsData.byStreamer.map(p => String(p.streamerId)));
                         const streamerPoints = pointsData.byStreamer.find(
                             p => String(p.streamerId) === streamerId
                         );
-                        console.log("Points for this streamer:", streamerPoints);
                         const points = streamerPoints ? streamerPoints.points : 0;
-                        console.log(`Setting currentPoints to: ${points} (${streamerPoints ? 'from backend' : 'default 0'})`);
                         setCurrentPoints(points);
 
                         // Initialize previous level ref to avoid immediate popup on load
@@ -90,7 +83,7 @@ const ChatSection = (props: ChatSectionProps) => {
                         }
                     }
                 } catch (error) {
-                    console.error("Error fetching loyalty data:", error);
+                    // console.error("Error fetching loyalty data:", error);
                 }
             }
         };
@@ -114,7 +107,7 @@ const ChatSection = (props: ChatSectionProps) => {
         }
 
         if (currentLevel && currentLevelId > previousLevelIdRef.current) {
-            console.log(`Level Up Detected! From ${previousLevelIdRef.current} to ${currentLevelId}`);
+            // console.log(`Level Up Detected! From ${previousLevelIdRef.current} to ${currentLevelId}`);
             setNewLevelData({
                 name: currentLevel.nombre,
                 number: currentLevelId
@@ -235,7 +228,7 @@ const ChatSection = (props: ChatSectionProps) => {
                         return
                     }
                     messageKeysRef.current.add(msgKey)
-                    console.log("History message data:", data.message);
+                    // console.log("History message data:", data.message);
                     deduped.push({
                         msg: {
                             texto: data.message.texto,
@@ -264,8 +257,8 @@ const ChatSection = (props: ChatSectionProps) => {
                 let dynamicLevel = data.message.user?.level || data.message.level;
                 let dynamicLevelName = data.message.user?.levelName || data.message.levelName;
 
-                console.log("Backend Data Received:", data);
-                console.log("Points Earned:", data.pointsEarned);
+                // console.log("Backend Data Received:", data);
+                // console.log("Points Earned:", data.pointsEarned);
 
                 // Only calculate locally if backend didn't provide the level (fallback)
                 if (!dynamicLevel && data.message.userId === user.id) {
@@ -286,7 +279,7 @@ const ChatSection = (props: ChatSectionProps) => {
                     if (calculatedLevel) {
                         dynamicLevel = calculatedLevel.id || 1;
                         dynamicLevelName = calculatedLevel.nombre;
-                        console.log(`Level updated locally (fallback): ${dynamicLevelName} (${newPoints} points)`);
+                        // console.log(`Level updated locally (fallback): ${dynamicLevelName} (${newPoints} points)`);
                     }
                 }
 
@@ -321,26 +314,26 @@ const ChatSection = (props: ChatSectionProps) => {
                         discordlink: ''
                     }
                 }
-                console.log("New Message constructed:", newMessage);
+                // console.log("New Message constructed:", newMessage);
                 appendMessageIfNew(newMessage, msgKey)
 
                 // Mostrar puntos ganados si es el usuario actual
-                console.log("Checking points update:", {
-                    messageUserId: data.message.userId,
-                    currentUserId: user.id,
-                    pointsEarned: data.pointsEarned,
-                    match: String(data.message.userId) === String(user.id)
-                });
+                // console.log("Checking points update:", {
+                //     messageUserId: data.message.userId,
+                //     currentUserId: user.id,
+                //     pointsEarned: data.pointsEarned,
+                //     match: String(data.message.userId) === String(user.id)
+                // });
 
                 if (String(data.message.userId) === String(user.id)) {
                     if (data.pointsEarned && data.pointsEarned > 0) {
-                        console.log(`Earned ${data.pointsEarned} points from message (optimistic update)`);
+                        // console.log(`Earned ${data.pointsEarned} points from message (optimistic update)`);
 
                         // Update points optimistically
                         setPointsEarned(data.pointsEarned)
                         setCurrentPoints(prev => {
                             const newPoints = prev + data.pointsEarned;
-                            console.log(`Points updated: ${prev} -> ${newPoints}`);
+                            // console.log(`Points updated: ${prev} -> ${newPoints}`);
                             return newPoints;
                         })
                         setShowPointsBadge(true)
@@ -386,8 +379,8 @@ const ChatSection = (props: ChatSectionProps) => {
             const unsubscribeLeave = onUserLeft(() => undefined)
             if (unsubscribeLeave) unsubscribes.push(unsubscribeLeave)
         } catch (error) {
-            console.error('Error al conectar WebSocket:', error)
-            console.warn('Continuando sin WebSocket. Los mensajes solo se verán localmente.')
+            // console.error('Error al conectar WebSocket:', error)
+            // console.warn('Continuando sin WebSocket. Los mensajes solo se verán localmente.')
         }
 
         return () => {
@@ -397,7 +390,7 @@ const ChatSection = (props: ChatSectionProps) => {
                 try {
                     unsubscribe?.()
                 } catch (err) {
-                    console.error('Error al limpiar listeners de chat:', err)
+                    // console.error('Error al limpiar listeners de chat:', err)
                 }
             })
         }
@@ -409,7 +402,7 @@ const ChatSection = (props: ChatSectionProps) => {
             const { points, streamerId, source } = event.detail;
             // Only update if it's for this streamer AND it's NOT from chat (to avoid double counting)
             if (String(streamerId) === String(props.stream.user.id) && source !== 'chat') {
-                console.log(`Received local points update (from ${source || 'unknown'}): +${points} pts`);
+                // console.log(`Received local points update (from ${source || 'unknown'}): +${points} pts`);
                 setCurrentPoints(prev => prev + points);
                 setPointsEarned(points);
                 setShowPointsBadge(true);

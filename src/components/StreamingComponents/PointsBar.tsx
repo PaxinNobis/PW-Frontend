@@ -46,7 +46,6 @@ const PointsBar = ({ streamerId }: PointsBarProps) => {
         const handlePointsUpdate = (event: any) => {
             const { streamerId: eventStreamerId } = event.detail;
             if (String(eventStreamerId) === String(streamerId)) {
-                console.log("PointsBar: Points updated, reloading...");
                 reload();
             }
         };

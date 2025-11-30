@@ -58,7 +58,7 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
       return;
     }
     isConnected = true;
-    console.log('WebSocket conectado');
+    // console.log('WebSocket conectado');
 
     // Unirse al chat con autenticación
     if (socket) {
@@ -67,7 +67,7 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
         token: token,
         streamerNickname: streamerNickname
       };
-      console.log('Enviando payload JOIN:', joinPayload);
+      // console.log('Enviando payload JOIN:', joinPayload);
       socket.send(JSON.stringify(joinPayload));
     }
   };
@@ -78,41 +78,41 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
     }
     try {
       const data = JSON.parse(event.data);
-      console.log('Mensaje recibido del servidor:', data);
+      // console.log('Mensaje recibido del servidor:', data);
 
       // Manejar diferentes tipos de mensajes
       switch (data.type) {
         case 'joined':
-          console.log('Unido al chat:', data.streamerName);
+          // console.log('Unido al chat:', data.streamerName);
           currentStreamId = data.streamId;
           break;
         case 'viewer_joined':
-          console.log('Viewer unido:', data.viewer.name);
+          // console.log('Viewer unido:', data.viewer.name);
           userJoinedCallbacks.forEach(callback => callback({ userId: data.viewer.id, userName: data.viewer.name }));
           if (data.newCount !== undefined) {
             viewerCountCallbacks.forEach(callback => callback(data.newCount));
           }
           break;
         case 'viewer_left':
-          console.log('Viewer salió:', data.viewerId);
+          // console.log('Viewer salió:', data.viewerId);
           userLeftCallbacks.forEach(callback => callback({ userId: data.viewerId, userName: '' }));
           if (data.newCount !== undefined) {
             viewerCountCallbacks.forEach(callback => callback(data.newCount));
           }
           break;
         case 'viewer_count_update':
-          console.log('Actualización de viewers:', data.count);
+          // console.log('Actualización de viewers:', data.count);
           viewerCountCallbacks.forEach(callback => callback(data.count));
           break;
         case 'typing':
-          console.log('Usuario escribiendo:', data.userName);
+          // console.log('Usuario escribiendo:', data.userName);
           typingCallbacks.forEach(callback => callback({ userId: data.userId, userName: data.userName, isTyping: data.isTyping }));
           break;
         case 'history':
-          console.log('Historial de mensajes recibido:', data.messages);
+          // console.log('Historial de mensajes recibido:', data.messages);
           // Convertir historial al formato del frontend
           const historyMessages = data.messages.map((msg: any) => {
-            console.log("Raw history msg:", msg);
+            // console.log("Raw history msg:", msg);
             return {
               message: {
                 id: msg.id,
@@ -135,7 +135,7 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
           historyCallbacks.forEach(callback => callback(historyMessages));
           break;
         case 'message':
-          console.log('Nuevo mensaje recibido:', data.message);
+          // console.log('Nuevo mensaje recibido:', data.message);
           // Convertir al formato esperado por el frontend
           const messageData: SendMessageResponse = {
             message: {
