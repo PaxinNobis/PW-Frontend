@@ -64,16 +64,8 @@ export interface StreamerStats {
  * Obtener nivel actual del streamer
  */
 export const getStreamerLevel = async (): Promise<StreamerLevelResponse> => {
-  const url = `${API_CONFIG.BASE_URL}/api/streamer/level`;
+  const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.STREAMER_LEVEL}`;
   return apiGet<StreamerLevelResponse>(url, getAuthHeaders());
-};
-
-/**
- * Obtener todos los niveles disponibles
- */
-export const getAllLevels = async (): Promise<{ levels: Level[] }> => {
-  const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.STREAMER_LEVELS}`;
-  return apiGet<{ levels: Level[] }>(url, getAuthHeaders());
 };
 
 /**

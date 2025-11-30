@@ -62,7 +62,6 @@ const Nosotros = (props: NosotrosProps) => {
 
                 <div className="row contenido">
                     <h1 className="fw-bold mb-5">Sobre Nosotros</h1>
-                    {/* izquierda*/}
                     <div className="seccion_contenido  col-md-6  mt-4 ml-5">
 
                         <h2 className="h4 mb-3">Nuestra Misión</h2>
@@ -82,7 +81,6 @@ const Nosotros = (props: NosotrosProps) => {
 
 
                     </div>
-                    {/* derecha*/}
                     <div className="col-md-6 mt-md-0">
                         <div className="mt-5">
                             {!user && (

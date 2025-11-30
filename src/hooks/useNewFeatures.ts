@@ -383,7 +383,6 @@ export const useFriends = () => {
  */
 export const useStreamerLevel = () => {
   const [levelData, setLevelData] = useState<streamerService.StreamerLevelResponse | null>(null);
-  const [allLevels, setAllLevels] = useState<streamerService.Level[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -410,18 +409,7 @@ export const useStreamerLevel = () => {
     }
   }, []);
 
-  const loadAllLevels = useCallback(async () => {
-    const user = getCurrentUser();
-    const token = localStorage.getItem('auth_token');
-    if (!user || !token) return;
 
-    try {
-      const data = await streamerService.getAllLevels();
-      setAllLevels(data.levels);
-    } catch (err: any) {
-      setError(err.message);
-    }
-  }, []);
 
   const updateHours = useCallback(async (hours: number) => {
     try {
@@ -436,8 +424,7 @@ export const useStreamerLevel = () => {
 
   useEffect(() => {
     loadLevel();
-    loadAllLevels();
-  }, [loadLevel, loadAllLevels]);
+  }, [loadLevel]);
 
-  return { levelData, allLevels, loading, error, updateHours, reload: loadLevel };
+  return { levelData, loading, error, updateHours, reload: loadLevel };
 };
