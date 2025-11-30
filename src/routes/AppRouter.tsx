@@ -68,7 +68,7 @@ interface AppRouterProps {
 const AppRouter = (props: AppRouterProps) => {
 	return (
 		<BrowserRouter>
-			<AuthProvider>
+			<AuthProvider basename='/AstroTv'>
 				<AuthSync user={props.user} />
 				<NavBar doLogOut={props.doLogOut} user={props.user} packs={props.packs}></NavBar>
 				<div className="d-flex pages vh-100 no-scroll">
