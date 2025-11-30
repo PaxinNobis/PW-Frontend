@@ -10,8 +10,10 @@ import GestionRegalos from './GestionRegalos';
 import ChatSection from '../components/StreamingComponents/ChatSection';
 import StartStreamModal from '../components/Dashboard/StartStreamModal';
 import StreamerLevelProgress from '../components/Dashboard/StreamerLevelProgress';
+import GiftNotification from '../components/StreamingComponents/GiftNotification';
 import { getStreamDetails } from '../services/data.service';
-import { stopStream } from '../services/streamer.service';
+import { stopStream, getStreamerStats, getStreamerLevel } from '../services/streamer.service';
+import * as chatService from '../services/chat.service';
 import { getCurrentUser } from '../services/auth.service';
 import { useStreamerLevel } from '../hooks/useNewFeatures';
 import type { User, Stream, Message, Game } from '../GlobalObjects/Objects_DataTypes';
@@ -28,9 +30,11 @@ const PanelControl = (props: PanelControlProps) => {
   const [seccionActiva, setSeccionActiva] = useState('Stream');
   const [userStream, setUserStream] = useState<Stream | null>(null);
   const [showStartModal, setShowStartModal] = useState(false);
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [newLevelName, setNewLevelName] = useState('');
 
   // Hook para el nivel del streamer
-  const { levelData, loading: levelLoading } = useStreamerLevel();
+  const { levelData, loading: levelLoading, reload: reloadLevel } = useStreamerLevel();
 
   useEffect(() => {
     const fetchStream = async () => {
@@ -38,14 +42,12 @@ const PanelControl = (props: PanelControlProps) => {
       if (user?.name) {
         try {
           const stream = await getStreamDetails(user.name);
-          console.log("Stream details from API:", stream);
 
           // Unwrap response if it's wrapped in { success: true, stream: ... }
           const actualStreamData = (stream as any).stream || stream;
 
           // Si no hay stream data (null, undefined, o error), crear un stream por defecto
           if (!actualStreamData || !actualStreamData.id) {
-            console.warn("No stream found for user, creating default offline stream");
             const defaultStream = {
               id: `temp-${user.id}`,
               title: "",
@@ -83,7 +85,6 @@ const PanelControl = (props: PanelControlProps) => {
               messagelist: []
             };
             setUserStream(defaultStream as unknown as Stream);
-
             return;
           }
 
@@ -103,7 +104,6 @@ const PanelControl = (props: PanelControlProps) => {
           setUserStream(adaptedStream as unknown as Stream);
         } catch (error) {
           // 404 es normal si el usuario no tiene stream aún
-          console.log("No stream found for user, using default offline stream");
           const defaultStream = {
             id: `temp-${user.id}`,
             title: "",
@@ -143,9 +143,44 @@ const PanelControl = (props: PanelControlProps) => {
           setUserStream(defaultStream as unknown as Stream);
         }
       }
-
     };
     fetchStream();
+
+    // Trigger stats sync
+    const syncStats = async () => {
+      try {
+        // 1. Get current level BEFORE sync
+        const initialData = await getStreamerLevel();
+        const oldLevelId = (initialData as any).levelData?.currentLevel?.id || (initialData as any).currentLevel?.id;
+
+        // 2. Trigger stats sync
+        await getStreamerStats();
+
+        // 3. Get new level AFTER sync
+        const newLevelData = await reloadLevel();
+
+        // 4. Compare
+        if (newLevelData && oldLevelId && newLevelData.currentLevel.id > oldLevelId) {
+          setNewLevelName(newLevelData.currentLevel.name);
+          setShowLevelUp(true);
+        }
+      } catch (e) {
+        console.error("Error syncing streamer stats:", e);
+      }
+    };
+    syncStats();
+
+    // Subscribe to WebSocket level up notifications
+    const unsubscribeLevelUp = chatService.onLevelUp((data) => {
+      setNewLevelName(data.levelName);
+      setShowLevelUp(true);
+      // Reload level data to update UI
+      reloadLevel();
+    });
+
+    return () => {
+      unsubscribeLevelUp();
+    };
   }, []);
 
   // Auto-stop stream when leaving the page (component unmount)
@@ -172,7 +207,6 @@ const PanelControl = (props: PanelControlProps) => {
       // Si está en vivo, detener stream
       try {
         const response = await stopStream();
-        console.log("Stop Stream Response:", response);
 
         // Actualizar estado local a offline
         setUserStream({ ...userStream, isLive: false } as any);
@@ -191,10 +225,12 @@ const PanelControl = (props: PanelControlProps) => {
     await props.doStreaming(user, title, game, link);
 
     // Actualizar estado local a online
-    // Nota: Idealmente deberíamos obtener el stream actualizado del backend,
-    // pero por ahora actualizamos el estado local para reflejar el cambio inmediato
     if (userStream) {
-      setUserStream({ ...userStream, isLive: true } as any);
+      setUserStream({
+        ...userStream,
+        isLive: true,
+        startedAt: new Date().toISOString() // Set start time locally for immediate feedback
+      } as any);
     }
 
     // Recargar detalles del stream para asegurar consistencia
@@ -216,7 +252,7 @@ const PanelControl = (props: PanelControlProps) => {
           setUserStream(adaptedStream as unknown as Stream);
         }
       } catch (e) {
-        console.log("Error refreshing stream details after start:", e);
+        // Silent fail on refresh
       }
     }
   };
@@ -234,7 +270,7 @@ const PanelControl = (props: PanelControlProps) => {
       <div className="row h-100">
         {userStream ? (
           <div className="d-flex w-100 h-100 panel-stream-layout">
-            <div className="flex-grow-1 d-flex flex-column" style={{ minWidth: 0, overflow: 'hidden' }}>
+            <div className="flex-grow-1 d-flex flex-column stream-content-wrapper">
               <div className="d-flex align-items-start justify-content-center w-100">
                 <div className="ratio ratio-16x9 border rounded overflow-hidden bg-black position-relative w-100">
                   {(userStream as any).isLive && userStream.iframeUrl ? (
@@ -304,6 +340,7 @@ const PanelControl = (props: PanelControlProps) => {
         <PanelHeader
           isLive={userStream ? (userStream as any).isLive : false}
           onToggleStream={handleToggleStream}
+          startedAt={userStream?.startedAt}
         />
       </div>
 
@@ -314,6 +351,18 @@ const PanelControl = (props: PanelControlProps) => {
         user={props.GetUser()}
         games={props.games}
       />
+
+
+
+      {showLevelUp && (
+        <GiftNotification
+          senderName="¡Felicidades!"
+          giftName={newLevelName || "Nivel Superior"}
+          actionText="has alcanzado el nivel"
+          iconClass="bi-stars"
+          onClose={() => setShowLevelUp(false)}
+        />
+      )}
 
       <div className="row mt-3 flex-grow-1 panel-content-row">
         <PanelOptions

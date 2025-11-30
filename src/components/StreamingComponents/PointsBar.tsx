@@ -164,13 +164,12 @@ const PointsBar = ({ streamerId }: PointsBarProps) => {
             </div>
             <div className="dropup">
                 <button
-                    className="support-button d-flex justify-content-center align-items-center border-0"
+                    className={`support-button d-flex justify-content-center align-items-center border-0 ${isStreamer ? 'disabled' : ''}`}
                     type="button"
                     id="giftsDropdown"
                     data-bs-toggle="dropdown"
                     aria-expanded="false"
                     disabled={isStreamer}
-                    style={isStreamer ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
                     title={isStreamer ? "No puedes enviarte regalos a ti mismo" : "Enviar regalo"}
                 >
                     <i className="bi bi-gift-fill ministars"></i>
@@ -196,8 +195,9 @@ const PointsBar = ({ streamerId }: PointsBarProps) => {
                                     >
                                         <span>{gift.nombre}</span>
                                         <div className="d-flex flex-column align-items-end ms-2">
-                                            <span className="badge bg-warning text-dark rounded-pill mb-1">
-                                                {gift.costo} <i className="bi bi-star-fill small"></i>
+                                            <span className="badge bg-warning text-dark rounded-pill mb-1 gift-price-badge">
+                                                <span className="fs-5 fw-bold">{gift.costo}</span>
+                                                <img src="/assets/icons/AstroCoin.png" alt="AstroCoin" className="astro-coin-icon" />
                                             </span>
                                             <span className="badge bg-info text-dark rounded-pill">
                                                 +{gift.puntos} pts
@@ -235,7 +235,7 @@ const PointsBar = ({ streamerId }: PointsBarProps) => {
                 confirmColor={alertConfig.type === 'danger' ? 'danger' : 'success'}
                 showCancel={false}
             />
-        </div>
+        </div >
     );
 };
 

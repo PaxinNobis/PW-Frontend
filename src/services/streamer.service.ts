@@ -72,7 +72,7 @@ export const getStreamerLevel = async (): Promise<StreamerLevelResponse> => {
  * Obtener todos los niveles disponibles
  */
 export const getAllLevels = async (): Promise<{ levels: Level[] }> => {
-  const url = `${API_CONFIG.BASE_URL}/api/streamer/levels/all`;
+  const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.STREAMER_LEVELS}`;
   return apiGet<{ levels: Level[] }>(url, getAuthHeaders());
 };
 

@@ -394,9 +394,17 @@ export const useStreamerLevel = () => {
     try {
       setLoading(true);
       const data = await streamerService.getStreamerLevel();
-      setLevelData(data);
+      console.log('Streamer Level Data received:', data);
+
+      // Handle potential wrapped response (e.g. { success: true, levelData: ... } or similar)
+      // Inspecting the structure based on common patterns
+      const actualData = (data as any).levelData || (data as any).data || data;
+
+      setLevelData(actualData);
+      return actualData;
     } catch (err: any) {
       setError(err.message);
+      return null;
     } finally {
       setLoading(false);
     }

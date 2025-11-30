@@ -41,9 +41,6 @@ const StreamingSection = (props: StreamingSectionProps) => {
         </div>;
     }
 
-    console.log("Stream Data in StreamingSection:", props.stream);
-    console.log("Iframe URL:", (props.stream as any).iframeUrl);
-
     useEffect(() => {
         SetIssighting(true)
         if (!user) {
@@ -94,7 +91,6 @@ const StreamingSection = (props: StreamingSectionProps) => {
 
         const interval = setInterval(async () => {
             try {
-                console.log(`Awarding watch time points for streamer ${props.stream.user.name}`);
                 const { earnPoints } = await import('../../services/points.service');
                 const response = await earnPoints({
                     streamerId: props.stream.user.id.toString(),
@@ -103,7 +99,6 @@ const StreamingSection = (props: StreamingSectionProps) => {
                 });
 
                 if (response.success) {
-                    console.log(`Earned ${response.pointsEarned} points for watch time`);
                     setCurrentPoints(prev => prev + response.pointsEarned);
 
                     // Optional: Show a small toast or notification?

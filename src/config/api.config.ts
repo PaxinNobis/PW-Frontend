@@ -1,7 +1,7 @@
 // Configuración centralizada de la API
 
 export const API_CONFIG = {
-  BASE_URL: 'http://localhost:8080',
+  BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
   ENDPOINTS: {
     // Auth
     AUTH_REGISTER: '/api/auth/register',
@@ -21,7 +21,7 @@ export const API_CONFIG = {
 
     // Streamer
     STREAMER_LEVEL: '/api/streamer/level',
-    STREAMER_LEVELS_ALL: '/api/streamer/levels/all',
+    STREAMER_LEVELS: '/api/streamer/levels',
     STREAMER_HOURS: '/api/streamer/hours',
     STREAMER_STATS: '/api/streamer/stats',
     STREAMER_GIFTS: (streamerId: string) => `/api/streamer/${streamerId}/gifts`,

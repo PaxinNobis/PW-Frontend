@@ -7,9 +7,11 @@ interface GiftNotificationProps {
     senderName: string;
     giftName: string;
     onClose: () => void;
+    actionText?: string;
+    iconClass?: string;
 }
 
-const GiftNotification = ({ senderName, giftName, onClose }: GiftNotificationProps) => {
+const GiftNotification = ({ senderName, giftName, onClose, actionText = "te ha enviado", iconClass = "bi-gift-fill" }: GiftNotificationProps) => {
     const [visible, setVisible] = useState(false);
 
     useEffect(() => {
@@ -35,12 +37,12 @@ const GiftNotification = ({ senderName, giftName, onClose }: GiftNotificationPro
             <div className={`gift-notification-container ${visible ? 'visible' : ''}`}>
                 <div className="gift-notification-content">
                     <div className="gift-icon-wrapper">
-                        <i className="bi bi-gift-fill gift-icon-large"></i>
+                        <i className={`bi ${iconClass} gift-icon-large`}></i>
                     </div>
                     <div className="gift-details">
                         <div className="gift-sender">{senderName}</div>
                         <div className="gift-message">
-                            te ha enviado <span className="gift-name-highlight">{giftName}</span>
+                            {actionText} <span className="gift-name-highlight">{giftName}</span>
                         </div>
                     </div>
                     <div className="gift-sparkles"></div>

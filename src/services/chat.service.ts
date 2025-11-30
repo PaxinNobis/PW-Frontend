@@ -11,6 +11,7 @@ let viewerCountCallbacks: Array<(count: number) => void> = [];
 let typingCallbacks: Array<(data: { userId: string; userName: string; isTyping: boolean }) => void> = [];
 let userLeftCallbacks: Array<(data: { userId: string; userName: string }) => void> = [];
 let giftReceivedCallbacks: Array<(data: GiftReceivedEvent) => void> = [];
+let levelUpCallbacks: Array<(data: LevelUpEvent) => void> = [];
 let currentStreamId: string | null = null;
 
 export interface ChatMessage {
@@ -27,6 +28,12 @@ export interface ChatMessage {
     levelName?: string;
   };
   createdAt: Date;
+}
+
+export interface LevelUpEvent {
+  levelName: string;
+  newLevelId: number;
+  oldLevelId: number;
 }
 
 export interface SendMessageResponse {
@@ -89,6 +96,7 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
     }
     try {
       const data = JSON.parse(event.data);
+      console.log("WebSocket Message Received:", data);
 
 
 
@@ -168,6 +176,7 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
           };
           messageCallbacks.forEach(callback => callback(messageData));
           break;
+          break;
         case 'gift':
           // Handle gift received event - backend sends data inside a 'data' property
           const giftData = data.data || data;
@@ -181,6 +190,44 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
             timestamp: giftData.timestamp
           };
           giftReceivedCallbacks.forEach(callback => callback(giftEvent));
+          break;
+        case 'notification':
+          // Handle generic notification event
+          const notificationData = data.data || data.notification || data;
+          console.log("Processing notification:", notificationData);
+
+          if (notificationData.type === 'level_up') {
+            // Extract level data from notification
+            let levelInfo = notificationData.data || {};
+
+            // Parse data if it's a string (common in some backend implementations)
+            if (typeof levelInfo === 'string') {
+              try {
+                levelInfo = JSON.parse(levelInfo);
+              } catch (e) {
+                console.error("Error parsing level up notification data:", e);
+                levelInfo = {};
+              }
+            }
+
+            console.log("Parsed Level Up Info:", levelInfo);
+
+            levelUpCallbacks.forEach(callback => callback({
+              // Handle case where newLevel is just the name string (as seen in logs)
+              levelName: typeof levelInfo.newLevel === 'string' ? levelInfo.newLevel : (levelInfo.newLevel?.name || levelInfo.levelName || "Nuevo Nivel"),
+              newLevelId: levelInfo.newLevel?.id || levelInfo.newLevelId || 0,
+              oldLevelId: levelInfo.oldLevelId || 0
+            }));
+          }
+          break;
+        case 'level_up':
+          // Handle direct level up event (legacy or alternative)
+          const levelUpData = data.data || data;
+          levelUpCallbacks.forEach(callback => callback({
+            levelName: levelUpData.levelName,
+            newLevelId: levelUpData.newLevelId,
+            oldLevelId: levelUpData.oldLevelId
+          }));
           break;
         case 'error':
           console.error('Error del servidor:', data.message);
@@ -316,6 +363,16 @@ export const onGiftReceived = (callback: (data: GiftReceivedEvent) => void) => {
   giftReceivedCallbacks.push(callback);
   return () => {
     giftReceivedCallbacks = giftReceivedCallbacks.filter(cb => cb !== callback);
+  };
+};
+
+/**
+ * Suscribirse a eventos de subida de nivel
+ */
+export const onLevelUp = (callback: (data: LevelUpEvent) => void) => {
+  levelUpCallbacks.push(callback);
+  return () => {
+    levelUpCallbacks = levelUpCallbacks.filter(cb => cb !== callback);
   };
 };
 

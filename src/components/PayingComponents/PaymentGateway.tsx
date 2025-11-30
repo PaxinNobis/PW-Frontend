@@ -36,10 +36,8 @@ const PaymentGateway = (_props: PaymentGatewayProps) => {
 
 			let paymentData: any = {};
 			if (pack && pack.id) {
-				console.log('PaymentGateway: Creating session for pack:', pack.id);
 				paymentData = { coinPackId: pack.id };
 			} else {
-				console.log('PaymentGateway: Creating session for custom amount:', value);
 				// El backend calcula el precio basado en la cantidad (amount)
 				paymentData = {
 					amount: value
@@ -49,13 +47,11 @@ const PaymentGateway = (_props: PaymentGatewayProps) => {
 			const response = await createCheckoutSession(paymentData);
 
 			if (response.clientSecret) {
-				console.log('PaymentGateway: Client secret received');
 				setClientSecret(response.clientSecret);
 			} else if (response.url) {
 				// Fallback to hosted checkout if backend returns URL
 				window.location.href = response.url;
 			} else {
-				console.error('PaymentGateway: No clientSecret or url in response');
 				alert('Error al iniciar el pago: Respuesta inválida del servidor');
 			}
 		} catch (error) {

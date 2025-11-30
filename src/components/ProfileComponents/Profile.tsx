@@ -8,7 +8,7 @@ import FollowButton from '../StreamingComponents/FollowButton';
 import './Profile.css';
 import type { User } from '../../GlobalObjects/Objects_DataTypes';
 import Videos from './Videos';
-import { useProfile } from '../../hooks/useNewFeatures';
+import { useProfile, usePoints } from '../../hooks/useNewFeatures';
 
 interface ProfileProps {
     GetUser: () => User | null
@@ -23,18 +23,28 @@ const Profile = (props: ProfileProps) => {
     const user = props.GetUser();
     let userId = identifier;
 
-    // Si el identificador coincide con el nombre del usuario logueado, usar su ID (UUID)
-    // Esto ayuda si el backend espera UUID pero la URL tiene el nombre
     if (user && (user.name === identifier || user.email === identifier)) {
         userId = user.id;
     }
 
     // Cargar perfil completo del backend
     const { profile: backendProfile, loading } = useProfile(userId);
+    const { points: userPoints } = usePoints();
+
+    // Calcular nivel global basado en puntos totales
+    const getGlobalLevel = (points: number) => {
+        if (points < 1000) return { level: 1, name: "Observador" };
+        if (points < 5000) return { level: 2, name: "Fan" };
+        if (points < 10000) return { level: 3, name: "Super Fan" };
+        if (points < 50000) return { level: 4, name: "Mega Fan" };
+        return { level: 5, name: "Astro Leyenda" };
+    };
+
+    const globalLevel = userPoints ? getGlobalLevel(userPoints.total) : { level: 1, name: "Observador" };
 
     // Usar perfil del backend directamente
     const profiletoshow = backendProfile ? {
-        id: backendProfile.id, // UUID del backend
+        id: backendProfile.id,
         name: backendProfile.name,
         email: backendProfile.email,
         pfp: backendProfile.pfp,
@@ -91,8 +101,8 @@ const Profile = (props: ProfileProps) => {
             return (
                 <div className="container mt-5">
                     <div className="alert alert-warning">
-                        <h4>⚠️ Usuario no encontrado</h4>
-                        <p>No se encontró el usuario "{identifier}" en el backend.</p>
+                        <h4>Usuario no encontrado</h4>
+                        <p>No se encontró el usuario "{identifier}".</p>
                         <hr />
                         <p className="mb-0">
                             <small className="text-muted">
@@ -153,6 +163,47 @@ const Profile = (props: ProfileProps) => {
                                 </div>
                             </div>
                         </div>
+
+                        {!Issighting && userPoints && (
+                            <div className="mt-4 pt-4">
+                                <h4 className="mb-3"><i className="text-warning me-2"></i>Mi Progreso como Espectador</h4>
+                                <div className="row g-3">
+                                    <div className="col-md-4">
+                                        <div className="card bg-light border-0 h-100">
+                                            <div className="card-body text-center">
+                                                <h5 className="card-title text-primary fw-bold">Nivel {globalLevel.level}</h5>
+                                                <h6 className="text-muted mb-3">{globalLevel.name}</h6>
+                                                <hr />
+                                                <h6 className="text-muted mb-2">Puntos Totales</h6>
+                                                <h2 className="mb-0 fw-bold text-dark">{userPoints.total}</h2>
+                                                <small className="text-muted">Acumulados</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="col-md-8">
+                                        <div className="card bg-light border-0 h-100">
+                                            <div className="card-body">
+                                                <h6 className="text-muted mb-3">Puntos por Streamer</h6>
+                                                {userPoints.byStreamer.length > 0 ? (
+                                                    <div className="d-flex flex-wrap gap-2">
+                                                        {userPoints.byStreamer.map(p => (
+                                                            <span key={p.streamerId} className="badge bg-white text-dark border p-2 d-flex align-items-center">
+                                                                <i className="bi bi-person-circle me-2 text-secondary"></i>
+                                                                {p.streamerName}
+                                                                <span className="badge bg-primary rounded-pill ms-2">{p.points} pts</span>
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-muted small mb-0">Aún no tienes puntos con ningún streamer.</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="card-body p-4 d-flex">
                             <Videos></Videos>
                         </div>

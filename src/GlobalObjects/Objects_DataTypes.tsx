@@ -8,6 +8,7 @@ export type Stream = {
     viewersid: User[];
     messagelist: Message[];
     iframeUrl?: string;
+    startedAt?: string;
 };
 
 export type Message = {

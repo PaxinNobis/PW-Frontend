@@ -213,7 +213,6 @@ const ChatSection = (props: ChatSectionProps) => {
 
         // Prevent connecting to chat if the stream is a temporary/offline placeholder
         if (props.stream.id && String(props.stream.id).startsWith('temp-')) {
-            console.log("ChatSection: Skipping connection for temporary stream ID:", props.stream.id);
             return;
         }
 
@@ -268,21 +267,10 @@ const ChatSection = (props: ChatSectionProps) => {
 
             // Escuchar nuevos mensajes
             const handleNewMessage = async (data: any) => {
-                console.log("ChatSection: New message received", data);
-                console.log("ChatSection: Stream ID check:", {
-                    msgStreamId: data.message.streamId,
-                    propStreamId: props.stream.id,
-                    match: String(data.message.streamId) === String(props.stream.id)
-                });
-
                 // Filter new messages by streamId (ensure string comparison)
                 // If streamId is missing in message, we assume it belongs to current stream (fallback)
                 if (data.message.streamId && props.stream.id && String(data.message.streamId) !== String(props.stream.id)) {
-                    console.warn("ChatSection: Stream ID mismatch, but allowing message for now:", {
-                        msgStreamId: data.message.streamId,
-                        propStreamId: props.stream.id
-                    });
-                    // return; // COMMENTED OUT TO FIX STREAMER VISIBILITY ISSUES (temp-id vs real-id)
+                    // Stream ID mismatch, but allowing message for now as fallback
                 }
 
                 const msgKey = buildMessageKey(data.message.id, data.message.createdAt, `${data.message.texto}-${data.message.hora}`)
@@ -402,7 +390,7 @@ const ChatSection = (props: ChatSectionProps) => {
                 }
             })
         }
-    }, [props.stream.user.name, user?.id])
+    }, [props.stream.user.name, user?.id, props.stream.id])
 
     // Listen for local points updates (from gifts)
     useEffect(() => {

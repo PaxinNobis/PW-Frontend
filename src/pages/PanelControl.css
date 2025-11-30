@@ -30,3 +30,8 @@
 .offline-icon {
     opacity: 0.5;
 }
+
+.stream-content-wrapper {
+    min-width: 0;
+    overflow: hidden;
+}

@@ -1,0 +1,33 @@
+/* StreamerLevelProgress.css */
+
+.streamer-level-container {
+    background-color: rgba(var(--nebula-violet), 0.3);
+    border: 1px solid rgba(var(--galactic-indigo), 0.5);
+}
+
+.streamer-level-title {
+    color: rgb(var(--supernova-yellow));
+}
+
+.streamer-level-progress-bg {
+    height: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.streamer-level-progress-bar {
+    background-color: rgb(var(--stellar-blue));
+    box-shadow: 0 0 10px rgba(var(--stellar-blue), 0.5);
+}
+
+.streamer-level-hours-remaining {
+    color: rgb(var(--starlight-gray));
+}
+
+.streamer-level-hours-remaining i,
+.streamer-level-hours-remaining strong {
+    color: rgb(var(--blue-dwarf));
+}
+
+.streamer-level-max {
+    color: rgb(var(--supernova-yellow));
+}

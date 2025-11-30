@@ -27,8 +27,10 @@ const AnalyticsDashboard = () => {
     try {
       setLoading(true);
       const data = await getAnalytics();
-      setAnalytics(data);
-      console.log('Analíticas cargadas:', data);
+      // Handle both direct object and wrapped response
+      const actualAnalytics = (data as any).analytics || data;
+      setAnalytics(actualAnalytics);
+      console.log('Analíticas cargadas:', actualAnalytics);
     } catch (err: any) {
       console.error('Error al cargar analíticas:', err);
       setError(err.message || 'Error al cargar analíticas');

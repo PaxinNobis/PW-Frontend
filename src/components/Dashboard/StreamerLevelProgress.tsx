@@ -1,5 +1,6 @@
 import React from 'react';
 import type { StreamerLevelResponse } from '../../services/streamer.service';
+import './StreamerLevelProgress.css';
 
 interface StreamerLevelProgressProps {
     levelData: StreamerLevelResponse | null;
@@ -26,6 +27,11 @@ const StreamerLevelProgress: React.FC<StreamerLevelProgressProps> = ({ levelData
 
     const { currentLevel, nextLevel, progress } = levelData;
 
+    const getLevelName = (levelObj: any) => {
+        if (!levelObj) return '';
+        return levelObj.name || levelObj.level || levelObj.nombre || levelObj.title || levelObj.levelname || 'Desconocido';
+    };
+
     // Calcular porcentaje de horas
     // Si no hay siguiente nivel, estamos al máximo (100%)
     const percentage = nextLevel
@@ -38,15 +44,15 @@ const StreamerLevelProgress: React.FC<StreamerLevelProgressProps> = ({ levelData
         : 0;
 
     return (
-        <div className="rounded p-3 mb-3" style={{ backgroundColor: 'rgba(var(--nebula-violet), 0.3)', border: '1px solid rgba(var(--galactic-indigo), 0.5)' }}>
+        <div className="rounded p-3 mb-3 streamer-level-container">
             <div className="d-flex justify-content-between align-items-center mb-2">
-                <h5 className="mb-0 fw-bold" style={{ color: 'rgb(var(--supernova-yellow))' }}>
+                <h5 className="mb-0 fw-bold streamer-level-title">
                     <i className="bi bi-trophy-fill me-2"></i>
-                    {currentLevel.name}
+                    {getLevelName(currentLevel)}
                 </h5>
                 {nextLevel && (
                     <small className="text-muted">
-                        Siguiente: {nextLevel.name}
+                        Siguiente: {getLevelName(nextLevel)}
                     </small>
                 )}
             </div>
@@ -54,17 +60,13 @@ const StreamerLevelProgress: React.FC<StreamerLevelProgressProps> = ({ levelData
             <div className="mb-2">
                 <div className="d-flex justify-content-between small mb-1 text-white">
                     <span>Progreso de horas</span>
-                    <span>{progress.currentHours.toFixed(1)} / {nextLevel ? nextLevel.minHours : 'MAX'} h</span>
+                    <span>{progress.currentHours.toFixed(2)} / {nextLevel ? nextLevel.minHours : 'MAX'} h</span>
                 </div>
-                <div className="progress" style={{ height: '8px', backgroundColor: 'rgba(255, 255, 255, 0.1)' }}>
+                <div className="progress streamer-level-progress-bg">
                     <div
-                        className="progress-bar progress-bar-striped progress-bar-animated"
+                        className="progress-bar progress-bar-striped progress-bar-animated streamer-level-progress-bar"
                         role="progressbar"
-                        style={{
-                            width: `${percentage}%`,
-                            backgroundColor: 'rgb(var(--stellar-blue))',
-                            boxShadow: '0 0 10px rgba(var(--stellar-blue), 0.5)'
-                        }}
+                        style={{ width: `${percentage}%` }}
                         aria-valuenow={percentage}
                         aria-valuemin={0}
                         aria-valuemax={100}
@@ -73,14 +75,14 @@ const StreamerLevelProgress: React.FC<StreamerLevelProgressProps> = ({ levelData
             </div>
 
             {nextLevel ? (
-                <div className="d-flex align-items-center small mt-2" style={{ color: 'rgb(var(--starlight-gray))' }}>
-                    <i className="bi bi-clock-history me-2" style={{ color: 'rgb(var(--blue-dwarf))' }}></i>
+                <div className="d-flex align-items-center small mt-2 streamer-level-hours-remaining">
+                    <i className="bi bi-clock-history me-2"></i>
                     <div>
-                        <strong style={{ color: 'rgb(var(--blue-dwarf))' }}>{hoursRemaining.toFixed(1)} horas</strong> restantes para subir de nivel.
+                        <strong>{hoursRemaining.toFixed(2)} horas</strong> restantes para subir de nivel.
                     </div>
                 </div>
             ) : (
-                <div className="small mt-2" style={{ color: 'rgb(var(--supernova-yellow))' }}>
+                <div className="small mt-2 streamer-level-max">
                     <i className="bi bi-star-fill me-2"></i>
                     ¡Has alcanzado el nivel máximo!
                 </div>

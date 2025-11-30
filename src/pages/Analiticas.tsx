@@ -11,7 +11,9 @@ const Analiticas = () => {
         const fetchAnalytics = async () => {
             try {
                 const data = await getAnalytics();
-                setAnalytics(data);
+                // Handle both direct object and wrapped response
+                const actualAnalytics = (data as any).analytics || data;
+                setAnalytics(actualAnalytics);
             } catch (err) {
                 console.error('Error fetching analytics:', err);
                 setError('No se pudieron cargar las analíticas.');
