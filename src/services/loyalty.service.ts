@@ -19,7 +19,7 @@ export const getLoyaltyLevels = async (): Promise<LoyaltyLevel[]> => {
     const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PANEL_LOYALTY_LEVELS}`;
     try {
         const response = await apiGet<LoyaltyLevelsResponse | LoyaltyLevel[]>(url, getAuthHeaders());
-        // Handle both array response or object with levels property
+        // Manejar respuesta como array u objeto con propiedad levels
         if (Array.isArray(response)) {
             return response;
         } else if (response && response.levels) {
@@ -38,7 +38,7 @@ export const getLoyaltyLevels = async (): Promise<LoyaltyLevel[]> => {
 export const updateLoyaltyLevels = async (levels: LoyaltyLevel[]): Promise<void> => {
     const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PANEL_LOYALTY_LEVELS}`;
     try {
-        // Backend expects { levels: [...] }
+        // Backend espera { levels: [...] }
         await apiPut(url, { levels }, getAuthHeaders());
     } catch (error) {
         console.error('Error updating loyalty levels:', error);
@@ -53,7 +53,7 @@ export const getStreamerLoyaltyLevels = async (streamerId: string): Promise<Loya
     const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.STREAMER_LOYALTY_LEVELS(streamerId)}`;
     try {
         const response = await apiGet<LoyaltyLevelsResponse | LoyaltyLevel[]>(url, getAuthHeaders());
-        // Handle both array response or object with levels property
+        // Manejar respuesta como array u objeto con propiedad levels
         if (Array.isArray(response)) {
             return response;
         } else if (response && response.levels) {

@@ -212,7 +212,6 @@ const PanelControl = (props: PanelControlProps) => {
         setUserStream({ ...userStream, isLive: false } as any);
       } catch (error) {
         console.error("Error stopping stream:", error);
-        alert("Error al detener el stream");
       }
     } else {
       // Si está offline, abrir modal para iniciar

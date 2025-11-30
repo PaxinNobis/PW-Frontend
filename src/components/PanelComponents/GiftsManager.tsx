@@ -42,7 +42,7 @@ const GiftsManager = () => {
       setLoading(true);
       const data = await getCustomGifts();
       setGifts(data);
-      console.log('Regalos cargados:', data.length);
+
     } catch (err: any) {
       console.error('Error al cargar regalos:', err);
       setError(err.message);
@@ -58,11 +58,9 @@ const GiftsManager = () => {
       if (editingGift) {
         // Actualizar regalo existente
         await updateCustomGift(editingGift.id, formData);
-        console.log('Regalo actualizado');
       } else {
         // Crear nuevo regalo
         await createCustomGift(formData);
-        console.log('Regalo creado');
       }
 
       // Recargar lista y cerrar modal
@@ -70,7 +68,6 @@ const GiftsManager = () => {
       handleCloseModal();
     } catch (err: any) {
       console.error('Error al guardar regalo:', err);
-      alert('Error al guardar regalo: ' + err.message);
     }
   };
 
@@ -83,7 +80,6 @@ const GiftsManager = () => {
       await loadGifts();
     } catch (err: any) {
       console.error('Error al eliminar regalo:', err);
-      alert('Error al eliminar regalo: ' + err.message);
     }
   };
 

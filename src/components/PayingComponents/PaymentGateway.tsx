@@ -27,7 +27,6 @@ const PaymentGateway = (_props: PaymentGatewayProps) => {
 
 	const handleInitiatePayment = async () => {
 		if ((!pack || !pack.id) && value <= 0) {
-			alert("Por favor selecciona un paquete de monedas o ingresa una cantidad válida");
 			return;
 		}
 
@@ -49,14 +48,13 @@ const PaymentGateway = (_props: PaymentGatewayProps) => {
 			if (response.clientSecret) {
 				setClientSecret(response.clientSecret);
 			} else if (response.url) {
-				// Fallback to hosted checkout if backend returns URL
+				// Fallback a checkout hospedado si el backend devuelve URL
 				window.location.href = response.url;
 			} else {
-				alert('Error al iniciar el pago: Respuesta inválida del servidor');
+				console.error('Error al iniciar el pago: Respuesta inválida del servidor');
 			}
 		} catch (error) {
 			console.error('PaymentGateway: Error creating session:', error);
-			alert('Error al iniciar el pago. Revisa la consola para más detalles.');
 		} finally {
 			setLoading(false);
 		}

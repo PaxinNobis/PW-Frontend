@@ -81,7 +81,7 @@ const SearchWithBackend = () => {
       }));
 
       setResults(convertedResults);
-      console.log(`Búsqueda completada: ${convertedResults.length} resultados`);
+
     } catch (err) {
       console.error('Error en búsqueda:', err);
       setError('Error al buscar streams. Intenta nuevamente.');

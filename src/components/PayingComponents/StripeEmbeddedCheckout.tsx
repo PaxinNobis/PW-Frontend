@@ -6,7 +6,7 @@ import {
 
 // Reemplaza con tu clave pública de Stripe (de prueba)
 // Esta clave es segura para exponer en el frontend
-const stripePromise = loadStripe("pk_test_51SZ6LBBUsVvSFBcB6VO0RcM7FzsKzJS5QaERIMAbhYMxVWu97P59l5XQNkpQCKaST1T54SK4mkeTTOdW5WRzl8Jl00yviyNLqs");
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
 
 interface StripeEmbeddedCheckoutProps {
     clientSecret: string;

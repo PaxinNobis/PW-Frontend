@@ -47,7 +47,7 @@ const Streaming = (props: StreamingProps) => {
                 const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.DATA_STREAM_DETAILS(name)}`;
                 const data = await apiGet<Stream>(url, getAuthHeaders());
 
-                // console.log("FULL STREAM DATA (JSON):", JSON.stringify(data, null, 2)); // CRITICAL DEBUG LOG
+
 
                 if (data) {
                     // Unwrap response if it's wrapped in { success: true, stream: ... }

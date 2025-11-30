@@ -62,16 +62,14 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
     socket.close();
   }
 
-  console.log('Conectando a WebSocket:', wsUrl);
-  console.log('Streamer:', streamerNickname);
-  console.log('Token:', token ? 'Presente' : 'No disponible');
+
 
   socket = new WebSocket(wsUrl);
   const activeSocket = socket;
 
   socket.onopen = () => {
     if (socket !== activeSocket) {
-      console.log('Socket obsoleto detectado durante onopen, cerrando sin unir');
+
       activeSocket.close();
       return;
     }
@@ -96,42 +94,42 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
     }
     try {
       const data = JSON.parse(event.data);
-      console.log("WebSocket Message Received:", data);
+
 
 
 
       switch (data.type) {
         case 'joined':
-          // console.log('Unido al chat:', data.streamerName);
+
           currentStreamId = data.streamId;
           break;
         case 'viewer_joined':
-          // console.log('Viewer unido:', data.viewer.name);
+
           userJoinedCallbacks.forEach(callback => callback({ userId: data.viewer.id, userName: data.viewer.name }));
           if (data.newCount !== undefined) {
             viewerCountCallbacks.forEach(callback => callback(data.newCount));
           }
           break;
         case 'viewer_left':
-          // console.log('Viewer salió:', data.viewerId);
+
           userLeftCallbacks.forEach(callback => callback({ userId: data.viewerId, userName: '' }));
           if (data.newCount !== undefined) {
             viewerCountCallbacks.forEach(callback => callback(data.newCount));
           }
           break;
         case 'viewer_count_update':
-          // console.log('Actualización de viewers:', data.count);
+
           viewerCountCallbacks.forEach(callback => callback(data.count));
           break;
         case 'typing':
-          // console.log('Usuario escribiendo:', data.userName);
+
           typingCallbacks.forEach(callback => callback({ userId: data.userId, userName: data.userName, isTyping: data.isTyping }));
           break;
         case 'history':
-          // console.log('Historial de mensajes recibido:', data.messages);
+
           // Convertir historial al formato del frontend
           const historyMessages = data.messages.map((msg: any) => {
-            // console.log("Raw history msg:", msg);
+
             return {
               message: {
                 id: msg.id,
@@ -154,7 +152,7 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
           historyCallbacks.forEach(callback => callback(historyMessages));
           break;
         case 'message':
-          // console.log('Nuevo mensaje recibido:', data.message);
+
           // Convertir al formato esperado por el frontend
           const messageData: SendMessageResponse = {
             message: {
@@ -178,7 +176,7 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
           break;
           break;
         case 'gift':
-          // Handle gift received event - backend sends data inside a 'data' property
+          // Manejar evento de regalo recibido - backend envía datos dentro de propiedad 'data'
           const giftData = data.data || data;
           const giftEvent: GiftReceivedEvent = {
             giftName: giftData.giftName,
@@ -192,15 +190,15 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
           giftReceivedCallbacks.forEach(callback => callback(giftEvent));
           break;
         case 'notification':
-          // Handle generic notification event
+          // Manejar evento de notificación genérica
           const notificationData = data.data || data.notification || data;
-          console.log("Processing notification:", notificationData);
+
 
           if (notificationData.type === 'level_up') {
-            // Extract level data from notification
+            // Extraer datos de nivel de la notificación
             let levelInfo = notificationData.data || {};
 
-            // Parse data if it's a string (common in some backend implementations)
+            // Parsear datos si es un string (común en algunas implementaciones de backend)
             if (typeof levelInfo === 'string') {
               try {
                 levelInfo = JSON.parse(levelInfo);
@@ -210,10 +208,10 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
               }
             }
 
-            console.log("Parsed Level Up Info:", levelInfo);
+
 
             levelUpCallbacks.forEach(callback => callback({
-              // Handle case where newLevel is just the name string (as seen in logs)
+              // Manejar caso donde newLevel es solo el nombre como string
               levelName: typeof levelInfo.newLevel === 'string' ? levelInfo.newLevel : (levelInfo.newLevel?.name || levelInfo.levelName || "Nuevo Nivel"),
               newLevelId: levelInfo.newLevel?.id || levelInfo.newLevelId || 0,
               oldLevelId: levelInfo.oldLevelId || 0
@@ -221,7 +219,7 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
           }
           break;
         case 'level_up':
-          // Handle direct level up event (legacy or alternative)
+          // Manejar evento directo de subida de nivel (legado o alternativo)
           const levelUpData = data.data || data;
           levelUpCallbacks.forEach(callback => callback({
             levelName: levelUpData.levelName,
@@ -280,7 +278,7 @@ export const disconnectFromChat = () => {
     historyCallbacks = [];
     userJoinedCallbacks = [];
     userLeftCallbacks = [];
-    console.log('Chat desconectado');
+
   }
 };
 
@@ -294,7 +292,7 @@ export const sendMessage = (texto: string): boolean => {
       type: 'chat',
       text: texto.trim()
     };
-    console.log('Enviando payload CHAT:', chatPayload);
+
     socket.send(JSON.stringify(chatPayload));
     return true;
   }

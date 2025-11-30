@@ -25,7 +25,7 @@ const App = () => {
     const [tags, setTags] = useState<GameTag[]>([]);
     const [games, setGames] = useState<Game[]>([]);
     const [following, setFollowing] = useState<User[]>([]);
-    // Removed unused levels and medals state
+    // Estado de niveles y medallas no utilizado eliminado
 
     const [packs, setPacks] = useState<Pack[]>([]);
     const [users, setUsers] = useState<User[]>([]);
@@ -41,15 +41,15 @@ const App = () => {
             if (result.isFollowing) {
                 // Ahora sigue al usuario
                 setFollowing([...following, user]);
-                console.log("Ahora sigues a", user.name);
+
             } else {
                 // Dejó de seguir
                 const newfollowing = following.filter(f => f.id !== user.id);
                 setFollowing(newfollowing);
-                console.log("Dejaste de seguir a", user.name);
+
             }
         } catch (error) {
-            console.log("Backend no disponible, usando follow local");
+
             // Fallback a lógica local
             for (let i = 0; i < following.length; i++) {
                 if (following[i].id == user.id) {
@@ -107,7 +107,7 @@ const App = () => {
             }
         }
     };
-    // Removed unused ReloadUser function
+    // Función ReloadUser no utilizada eliminada
     const PayingFunction = async (user: User | null, packId: string) => {
         if (!user) {
             console.error("Usuario no autenticado");
@@ -184,7 +184,7 @@ const App = () => {
             try {
                 // Cargar following
                 const followingData = await getFollowing();
-                console.log('Following data response:', followingData);
+
                 const followingList = Array.isArray(followingData) ? followingData : (followingData as any).following || [];
                 const convertedFollowing = followingList.map((f: any) => ({
                     id: f.id, // UUID del backend
@@ -227,13 +227,13 @@ const App = () => {
                     setPacks(convertedPacks);
                 }
             } catch (err) {
-                console.log("Error al cargar datos del usuario:", err);
+
             }
 
-            console.log("Login exitoso con backend");
+
             return 1;
         } catch (backendError) {
-            console.log("Backend no disponible, intentando login local");
+
             // Fallback a login local
             for (const user of users) {
                 if (email == user.email && pass == user.password) {
@@ -366,7 +366,7 @@ const App = () => {
             localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(localUser));
             return 1;
         } catch (backendError) {
-            console.log("Backend no disponible, intentando registro local");
+
             // Fallback a registro local
             for (const user of users) {
                 if (email == user.email) {
@@ -422,7 +422,7 @@ const App = () => {
         }
         catch (error) {
             console.error('Error parsing user data:', error);
-            console.log("Corrupted user data:", userJson);
+
             // localStorage.removeItem(USER_STORAGE_KEY);
             return null;
         }
@@ -526,7 +526,7 @@ const App = () => {
                 // Cargar following si hay usuario autenticado
                 if (posibleuser) {
                     if (streams.length > 0) {
-                        console.log("First stream from getAllStreams:", JSON.stringify(streams[0], null, 2));
+
                     }
                     try {
                         const followingData = await getFollowing();
@@ -620,7 +620,7 @@ const App = () => {
             const response6 = await fetch("/data/users.json");
             const data6 = await response6.json();
             setUsers(data6);
-            // Removed unused levels and medals loading
+            // Carga de niveles y medallas no utilizada eliminada
 
         } catch (error) {
             console.error("Error al cargar datos:", error);
@@ -632,12 +632,12 @@ const App = () => {
         if (!currentUser) return;
 
         try {
-            // Use fetchCurrentUser (auth/me) instead of getUserProfile because it guarantees returning coins
+            // Usar fetchCurrentUser (auth/me) en lugar de getUserProfile porque garantiza devolver coins
             const { fetchCurrentUser } = await import('./services/auth.service');
             const updatedUser = await fetchCurrentUser();
 
             if (updatedUser && typeof updatedUser.coins === 'number') {
-                // Always update if different to ensure sync
+                // Siempre actualizar si es diferente para asegurar sincronización
                 if (currentUser.coins !== updatedUser.coins) {
                     const newLocalUser = { ...currentUser, coins: updatedUser.coins };
                     setUser(newLocalUser);
@@ -652,7 +652,7 @@ const App = () => {
     useEffect(() => {
         refreshUserData();
 
-        // Retry fetching user data after 2 seconds to handle potential race conditions (e.g. after payment)
+        // Reintentar obtener datos del usuario después de 2 segundos para manejar posibles race conditions (ej. después de pago)
         const timer = setTimeout(() => {
             refreshUserCoins();
         }, 2000);
@@ -661,7 +661,7 @@ const App = () => {
         const handleCoinsUpdate = (event: Event) => {
             refreshUserData();
 
-            // Optimistic update for immediate feedback if cost is provided
+            // Actualización optimista para feedback inmediato si se proporciona el costo
             const customEvent = event as CustomEvent;
             if (customEvent.detail && typeof customEvent.detail.cost === 'number') {
                 const cost = customEvent.detail.cost;
@@ -678,7 +678,7 @@ const App = () => {
         };
 
         const handleStreamUpdate = () => {
-            console.log("Stream updated event received, refreshing data...");
+
             refreshUserData();
         };
 

@@ -112,7 +112,7 @@ const ChatSection = (props: ChatSectionProps) => {
         }
 
         if (currentLevel && currentLevelId > previousLevelIdRef.current) {
-            // console.log(`Level Up Detected! From ${previousLevelIdRef.current} to ${currentLevelId}`);
+
             setNewLevelData({
                 name: currentLevel.nombre,
                 number: currentLevelId
@@ -243,7 +243,7 @@ const ChatSection = (props: ChatSectionProps) => {
                         return
                     }
                     messageKeysRef.current.add(msgKey)
-                    // console.log("History message data:", data.message);
+
                     deduped.push({
                         msg: {
                             texto: data.message.texto,
@@ -341,7 +341,7 @@ const ChatSection = (props: ChatSectionProps) => {
 
                     if (isStreamer) {
                         // Explicitly do nothing for streamer regarding points
-                        // console.log("Streamer message detected - No points awarded.");
+
                     } else if (data.pointsEarned && data.pointsEarned > 0) {
                         // Update points optimistically ONLY if not streamer
                         setPointsEarned(data.pointsEarned)

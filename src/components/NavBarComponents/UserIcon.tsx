@@ -20,7 +20,7 @@ const UserIcon = (props: UserIconProps) => {
       navigate("/Home")
     } catch (err) {
       if (err instanceof Error) {
-        console.log(err.message)
+
       }
       else {
         console.log("Error desconocido durante el login");

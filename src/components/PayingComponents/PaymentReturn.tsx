@@ -38,7 +38,7 @@ const PaymentReturn = () => {
 
                     // 3. Reintentar a los 3 segundos por seguridad (race conditions)
                     setTimeout(() => {
-                        console.log("Re-verificando saldo (retry)...");
+
                         if (refreshUser) refreshUser();
                         window.dispatchEvent(new CustomEvent('userCoinsUpdated'));
                     }, 3000);

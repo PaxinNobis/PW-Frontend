@@ -2,8 +2,6 @@
 
 import type {
   CoinPack,
-  CheckoutSessionRequest,
-  CheckoutSessionResponse,
   TransactionHistoryResponse,
   BalanceResponse,
 } from '../types/api';
@@ -22,15 +20,12 @@ export const getCoinPacks = async (): Promise<CoinPack[]> => {
 /**
  * Crear sesión de pago con Stripe
  */
-export const createCheckoutSession = async (
-  data: CheckoutSessionRequest
-): Promise<CheckoutSessionResponse> => {
+export const createCheckoutSession = async (data: { coinPackId?: string; amount?: number }): Promise<{ clientSecret?: string; url?: string }> => {
   const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PAYMENT_CHECKOUT}`;
-  console.log('Creating checkout session with data:', data);
-  return apiPost<CheckoutSessionResponse>(url, data, getAuthHeaders());
+  return apiPost(url, data, getAuthHeaders());
 };
 
-export const verifyPaymentSession = async (sessionId: string): Promise<any> => {
+export const verifyPaymentSession = async (sessionId: string): Promise<{ success: boolean; message: string }> => {
   const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PAYMENT_VERIFY_SESSION}`;
   return apiPost(url, { sessionId }, getAuthHeaders());
 };

@@ -160,11 +160,11 @@ export const useProfile = (userId?: string) => {
 
     try {
       setLoading(true);
-      console.log(`Cargando perfil del usuario: ${userId}`);
+
       const data = await profileService.getUserProfile(userId);
-      console.log(`Datos recibidos del backend:`, data);
+
       setProfile(data);
-      console.log(`Perfil cargado exitosamente: ${data.name || 'SIN NOMBRE'}`);
+
     } catch (err: any) {
       console.error(`Error al cargar perfil de ${userId}:`, err.message);
       setError(err.message);
@@ -394,7 +394,7 @@ export const useStreamerLevel = () => {
     try {
       setLoading(true);
       const data = await streamerService.getStreamerLevel();
-      console.log('Streamer Level Data received:', data);
+
 
       // Handle potential wrapped response (e.g. { success: true, levelData: ... } or similar)
       // Inspecting the structure based on common patterns
