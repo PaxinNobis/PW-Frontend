@@ -20,7 +20,14 @@ const Profile = (props: ProfileProps) => {
     const { identifier } = useParams<{ identifier: string }>();
 
     // Usar el identifier (puede ser nombre, email o UUID)
-    const userId = identifier;
+    const user = props.GetUser();
+    let userId = identifier;
+
+    // Si el identificador coincide con el nombre del usuario logueado, usar su ID (UUID)
+    // Esto ayuda si el backend espera UUID pero la URL tiene el nombre
+    if (user && (user.name === identifier || user.email === identifier)) {
+        userId = user.id;
+    }
 
     // Cargar perfil completo del backend
     const { profile: backendProfile, loading } = useProfile(userId);
@@ -53,7 +60,7 @@ const Profile = (props: ProfileProps) => {
     } as User : null;
 
     const [Issighting, SetIssighting] = useState<boolean>(true);
-    const user = props.GetUser();
+    // const user = props.GetUser(); // Already declared above
 
     useEffect(() => {
         SetIssighting(true)

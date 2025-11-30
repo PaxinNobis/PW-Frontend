@@ -39,12 +39,20 @@ export const loginUser = async (credentials: LoginCredentials): Promise<User> =>
  */
 export const fetchCurrentUser = async (): Promise<User> => {
   const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH_ME}`;
-  const user = await apiGet<User>(url, getAuthHeaders());
+  const response = await apiGet<{ success: boolean; user: User }>(url, getAuthHeaders());
+
+  // Asegurar que la imagen de perfil sea válida
+  const userToSave = {
+    ...response.user,
+    pfp: (response.user.pfp && response.user.pfp !== "undefined")
+      ? response.user.pfp
+      : "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-70x70.png"
+  };
 
   // Actualizar localStorage
-  localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+  localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userToSave));
 
-  return user;
+  return userToSave;
 };
 
 /**

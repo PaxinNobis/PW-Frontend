@@ -365,7 +365,8 @@ const App = () => {
         }
         catch (error) {
             console.error('Error parsing user data:', error);
-            localStorage.removeItem(USER_STORAGE_KEY);
+            console.log("Corrupted user data:", userJson);
+            // localStorage.removeItem(USER_STORAGE_KEY);
             return null;
         }
     };
@@ -469,7 +470,6 @@ const App = () => {
                 if (posibleuser) {
                     try {
                         const followingData = await getFollowing();
-                        console.log('Following data response:', followingData);
                         const followingList = Array.isArray(followingData) ? followingData : (followingData as any).following || [];
                         const convertedFollowing = followingList.map((f: any) => ({
                             id: f.id, // UUID del backend
@@ -502,11 +502,29 @@ const App = () => {
                         // Esto es crucial para la sincronización
                         try {
                             // Intentar obtener el perfil más reciente para actualizar monedas
-                            const updatedProfile = await profileService.getUserProfile(posibleuser.id);
-                            if (updatedProfile && typeof updatedProfile.coins === 'number') {
-                                const updatedUser = { ...posibleuser, coins: updatedProfile.coins };
-                                setUser(updatedUser);
-                                localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+                            if (posibleuser && posibleuser.id) {
+                                const updatedProfile = await profileService.getUserProfile(posibleuser.id);
+                                if (updatedProfile && typeof updatedProfile.coins === 'number') {
+                                    const updatedUser: User = {
+                                        ...posibleuser,
+                                        coins: updatedProfile.coins,
+                                        name: updatedProfile.name || posibleuser.name,
+                                        email: updatedProfile.email || posibleuser.email,
+                                        pfp: (updatedProfile.pfp && updatedProfile.pfp !== "undefined") ? updatedProfile.pfp : ((posibleuser.pfp && posibleuser.pfp !== "undefined") ? posibleuser.pfp : "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-70x70.png"),
+                                        bio: updatedProfile.bio || posibleuser.bio || "",
+                                        online: updatedProfile.online ?? posibleuser.online,
+                                        streaminghours: updatedProfile.stats?.streamingHours ?? posibleuser.streaminghours,
+                                        xlink: updatedProfile.socialLinks?.x || posibleuser.xlink || '',
+                                        youtubelink: updatedProfile.socialLinks?.youtube || posibleuser.youtubelink || '',
+                                        instagramlink: updatedProfile.socialLinks?.instagram || posibleuser.instagramlink || '',
+                                        tiktoklink: updatedProfile.socialLinks?.tiktok || posibleuser.tiktoklink || '',
+                                        discordlink: updatedProfile.socialLinks?.discord || posibleuser.discordlink || ''
+                                    };
+                                    setUser(updatedUser);
+                                    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+                                }
+                            } else {
+                                console.warn("User ID is missing in posibleuser:", posibleuser);
                             }
                         } catch (e) {
                             console.log("No se pudo actualizar saldo en tiempo real");
@@ -520,32 +538,32 @@ const App = () => {
             } catch (backendError) {
                 console.warn("Error al cargar desde backend, usando datos locales");
                 // Fallback a datos locales si el backend falla
-                const response1 = await fetch("./data/streams.json");
+                const response1 = await fetch("/data/streams.json");
                 const data1 = await response1.json();
                 setStreams(data1);
-                const response2 = await fetch("./data/tags.json");
+                const response2 = await fetch("/data/tags.json");
                 const data2 = await response2.json();
                 setTags(data2);
-                const response3 = await fetch("./data/games.json");
+                const response3 = await fetch("/data/games.json");
                 const data3 = await response3.json();
                 setGames(data3);
-                const response4 = await fetch("./data/following.json");
+                const response4 = await fetch("/data/following.json");
                 const data4 = await response4.json();
                 setFollowing(data4);
-                const response5 = await fetch("./data/packs.json");
+                const response5 = await fetch("/data/packs.json");
                 const data5 = await response5.json();
                 setPacks(data5);
                 console.log("Datos locales cargados como fallback");
             }
 
             // Cargar datos locales que no están en el backend aún
-            const response6 = await fetch("./data/users.json");
+            const response6 = await fetch("/data/users.json");
             const data6 = await response6.json();
             setUsers(data6);
-            const response7 = await fetch("./data/levels.json");
+            const response7 = await fetch("/data/levels.json");
             const data7 = await response7.json();
             setLevels(data7);
-            const response8 = await fetch("./data/medals.json");
+            const response8 = await fetch("/data/medals.json");
             const data8 = await response8.json();
             setMedals(data8);
 

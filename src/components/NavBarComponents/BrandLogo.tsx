@@ -17,8 +17,7 @@ const BrandLogo = () => {
 	const navigate = useNavigate()
 	const handleReload = () => {
 		navigate("/Home")
-		window.location.reload()
-    }
+	}
 	return (
 		<h1 onClick={handleReload} className="title"><span className="a-nave ">A</span>stroTV</h1>
 	);

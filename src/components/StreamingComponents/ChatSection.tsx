@@ -1,7 +1,8 @@
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useMemo } from "react"
 import ChatMessage from "./ChatMessage"
 import ChatBar from "./ChatBar"
 import ProgressBar from "./ProgressBar"
+import LevelUpModal from "./LevelUpModal"
 import { connectToChat, disconnectFromChat, onNewMessage, onHistory, onUserJoined, onUserLeft, clearCallbacks } from "../../services/chat.service"
 import type { Message } from "../../GlobalObjects/Objects_DataTypes"
 import type { User } from "../../GlobalObjects/Objects_DataTypes"
@@ -29,6 +30,23 @@ const ChatSection = (props: ChatSectionProps) => {
     const [loyaltyLevels, setLoyaltyLevels] = useState<LoyaltyLevel[]>([]);
     const [currentPoints, setCurrentPoints] = useState<number>(0);
 
+    // Level Up Modal State
+    const [showLevelUpModal, setShowLevelUpModal] = useState(false);
+    const [newLevelData, setNewLevelData] = useState<{ name: string; number: number } | null>(null);
+    const previousLevelIdRef = useRef<number | null>(null);
+
+    // Refs to access latest state inside useEffect without re-triggering it
+    const loyaltyLevelsRef = useRef<LoyaltyLevel[]>([]);
+    const currentPointsRef = useRef<number>(0);
+
+    useEffect(() => {
+        loyaltyLevelsRef.current = loyaltyLevels;
+    }, [loyaltyLevels]);
+
+    useEffect(() => {
+        currentPointsRef.current = currentPoints;
+    }, [currentPoints]);
+
     useEffect(() => {
         doChattingRef.current = props.doChatting
     }, [props.doChatting])
@@ -47,11 +65,29 @@ const ChatSection = (props: ChatSectionProps) => {
                     if (user) {
                         const pointsData = await getUserPoints();
                         console.log("User points fetched:", pointsData);
+                        const streamerId = String(props.stream.user.id);
+                        console.log("Looking for streamerId:", streamerId);
+                        console.log("Available streamerIds:", pointsData.byStreamer.map(p => String(p.streamerId)));
                         const streamerPoints = pointsData.byStreamer.find(
-                            p => p.streamerId === props.stream.user.id.toString()
+                            p => String(p.streamerId) === streamerId
                         );
                         console.log("Points for this streamer:", streamerPoints);
-                        setCurrentPoints(streamerPoints ? streamerPoints.points : 0);
+                        const points = streamerPoints ? streamerPoints.points : 0;
+                        console.log(`Setting currentPoints to: ${points} (${streamerPoints ? 'from backend' : 'default 0'})`);
+                        setCurrentPoints(points);
+
+                        // Initialize previous level ref to avoid immediate popup on load
+                        if (sortedLevels.length > 0) {
+                            let initialLevelId = 0; // Start at 0 (Espectador/no level)
+                            for (let i = 0; i < sortedLevels.length; i++) {
+                                if (points >= sortedLevels[i].puntosRequeridos) {
+                                    initialLevelId = sortedLevels[i].id || (i + 1);
+                                } else {
+                                    break;
+                                }
+                            }
+                            previousLevelIdRef.current = initialLevelId;
+                        }
                     }
                 } catch (error) {
                     console.error("Error fetching loyalty data:", error);
@@ -61,41 +97,74 @@ const ChatSection = (props: ChatSectionProps) => {
         fetchData();
     }, [props.stream.user.id, user?.id]);
 
-    const getViewerProgress = () => {
-        if (!user) return { current: 0, max: 100, topic: "puntos" };
+    // Detect Level Up
+    useEffect(() => {
+        if (loyaltyLevels.length === 0 || previousLevelIdRef.current === null) return;
 
-        const points = currentPoints;
-
-        if (loyaltyLevels.length === 0) return { current: points, max: 100, topic: "puntos" };
-
-        let currentLvl = null;
-        let nextLvl = null;
+        let currentLevel = null;
+        let currentLevelId = 1;
 
         for (let i = 0; i < loyaltyLevels.length; i++) {
-            if (points >= loyaltyLevels[i].puntosRequeridos) {
-                currentLvl = loyaltyLevels[i];
+            if (currentPoints >= loyaltyLevels[i].puntosRequeridos) {
+                currentLevel = loyaltyLevels[i];
+                currentLevelId = loyaltyLevels[i].id || (i + 1);
             } else {
-                nextLvl = loyaltyLevels[i];
                 break;
             }
         }
 
-        if (!nextLvl) {
-            return {
-                current: points,
-                max: points,
-                topic: `puntos (Nivel Máximo: ${currentLvl?.nombre || 'Leyenda'})`
-            };
+        if (currentLevel && currentLevelId > previousLevelIdRef.current) {
+            console.log(`Level Up Detected! From ${previousLevelIdRef.current} to ${currentLevelId}`);
+            setNewLevelData({
+                name: currentLevel.nombre,
+                number: currentLevelId
+            });
+            setShowLevelUpModal(true);
+            previousLevelIdRef.current = currentLevelId;
+        } else if (currentLevelId < previousLevelIdRef.current) {
+            // Handle case where points might have been reset or error, sync ref down
+            previousLevelIdRef.current = currentLevelId;
         }
 
-        return {
-            current: points,
-            max: nextLvl.puntosRequeridos,
-            topic: `puntos para ${nextLvl.nombre}`
-        };
-    };
+    }, [currentPoints, loyaltyLevels]);
 
-    const progress = getViewerProgress();
+    const progress = useMemo(() => {
+        const getViewerProgress = () => {
+            if (!user) return { current: 0, max: 0, topic: "puntos" };
+
+            const points = currentPoints;
+
+            if (loyaltyLevels.length === 0) return { current: points, max: points, topic: "puntos" };
+
+            let currentLvl = null;
+            let nextLvl = null;
+
+            for (let i = 0; i < loyaltyLevels.length; i++) {
+                if (points >= loyaltyLevels[i].puntosRequeridos) {
+                    currentLvl = loyaltyLevels[i];
+                } else {
+                    nextLvl = loyaltyLevels[i];
+                    break;
+                }
+            }
+
+            if (!nextLvl) {
+                return {
+                    current: points,
+                    max: points,
+                    topic: `puntos (Nivel Máximo: ${currentLvl?.nombre || 'Leyenda'})`
+                };
+            }
+
+            return {
+                current: points,
+                max: nextLvl.puntosRequeridos,
+                topic: `puntos para ${nextLvl.nombre}`
+            };
+        };
+
+        return getViewerProgress();
+    }, [currentPoints, loyaltyLevels, user]);
 
     const buildMessageKey = (id?: string, createdAt?: string, fallback?: string) => {
         if (id) return id
@@ -166,12 +235,14 @@ const ChatSection = (props: ChatSectionProps) => {
                         return
                     }
                     messageKeysRef.current.add(msgKey)
+                    console.log("History message data:", data.message);
                     deduped.push({
                         msg: {
                             texto: data.message.texto,
                             hora: data.message.hora,
                             user: data.message.user,
-                            level: data.message.user?.level || data.message.level || 1
+                            level: data.message.user?.level || data.message.level || 1,
+                            levelName: data.message.user?.levelName || data.message.levelName
                         },
                         key: msgKey
                     })
@@ -186,26 +257,36 @@ const ChatSection = (props: ChatSectionProps) => {
             if (unsubscribeHistory) unsubscribes.push(unsubscribeHistory)
 
             // Escuchar nuevos mensajes
-            const handleNewMessage = (data: any) => {
+            const handleNewMessage = async (data: any) => {
                 const msgKey = buildMessageKey(data.message.id, data.message.createdAt, `${data.message.texto}-${data.message.hora}`)
                 // Calculate dynamic level for current user
-                let dynamicLevel = data.message.user?.level || data.message.level || 1;
+                // Priority: Backend provided level -> Local calculation -> Default
+                let dynamicLevel = data.message.user?.level || data.message.level;
                 let dynamicLevelName = data.message.user?.levelName || data.message.levelName;
 
-                if (data.message.userId === user.id) {
-                    const newPoints = currentPoints + data.pointsEarned;
+                console.log("Backend Data Received:", data);
+                console.log("Points Earned:", data.pointsEarned);
+
+                // Only calculate locally if backend didn't provide the level (fallback)
+                if (!dynamicLevel && data.message.userId === user.id) {
+                    const currentPointsVal = currentPointsRef.current;
+                    const loyaltyLevelsVal = loyaltyLevelsRef.current;
+
+                    const newPoints = currentPointsVal + (data.pointsEarned || 0);
+
                     // Find level based on new points
                     let calculatedLevel = null;
-                    for (let i = 0; i < loyaltyLevels.length; i++) {
-                        if (newPoints >= loyaltyLevels[i].puntosRequeridos) {
-                            calculatedLevel = loyaltyLevels[i];
+                    for (let i = 0; i < loyaltyLevelsVal.length; i++) {
+                        if (newPoints >= loyaltyLevelsVal[i].puntosRequeridos) {
+                            calculatedLevel = loyaltyLevelsVal[i];
                         } else {
                             break;
                         }
                     }
                     if (calculatedLevel) {
-                        dynamicLevel = calculatedLevel.id || 1; // Assuming ID maps to level number, or use index + 1
+                        dynamicLevel = calculatedLevel.id || 1;
                         dynamicLevelName = calculatedLevel.nombre;
+                        console.log(`Level updated locally (fallback): ${dynamicLevelName} (${newPoints} points)`);
                     }
                 }
 
@@ -244,12 +325,52 @@ const ChatSection = (props: ChatSectionProps) => {
                 appendMessageIfNew(newMessage, msgKey)
 
                 // Mostrar puntos ganados si es el usuario actual
-                if (data.message.userId === user.id) {
-                    if (data.pointsEarned > 0) {
+                console.log("Checking points update:", {
+                    messageUserId: data.message.userId,
+                    currentUserId: user.id,
+                    pointsEarned: data.pointsEarned,
+                    match: String(data.message.userId) === String(user.id)
+                });
+
+                if (String(data.message.userId) === String(user.id)) {
+                    if (data.pointsEarned && data.pointsEarned > 0) {
+                        console.log(`Earned ${data.pointsEarned} points from message (optimistic update)`);
+
+                        // Update points optimistically
                         setPointsEarned(data.pointsEarned)
-                        setCurrentPoints(prev => prev + data.pointsEarned)
+                        setCurrentPoints(prev => {
+                            const newPoints = prev + data.pointsEarned;
+                            console.log(`Points updated: ${prev} -> ${newPoints}`);
+                            return newPoints;
+                        })
                         setShowPointsBadge(true)
                         setTimeout(() => setShowPointsBadge(false), 3000)
+
+                        // Notify other components (like PointsBar) that points were updated
+                        window.dispatchEvent(new CustomEvent('userPointsUpdated', {
+                            detail: {
+                                points: data.pointsEarned,
+                                streamerId: props.stream.user.id,
+                                source: 'chat'
+                            }
+                        }));
+
+                        // TODO: Backend is not persisting message points correctly
+                        // Once backend is fixed, uncomment this to sync with DB:
+                        /*
+                        try {
+                            const { getUserPoints } = await import('../../services/points.service');
+                            const pointsData = await getUserPoints();
+                            const streamerId = String(props.stream.user.id);
+                            const streamerPoints = pointsData.byStreamer.find(
+                                p => String(p.streamerId) === streamerId
+                            );
+                            const actualPoints = streamerPoints ? streamerPoints.points : 0;
+                            setCurrentPoints(actualPoints);
+                        } catch (error) {
+                            console.error("Error fetching updated points:", error);
+                        }
+                        */
                     }
                     doChattingRef.current(newMessage, props.stream)
                 }
@@ -282,8 +403,34 @@ const ChatSection = (props: ChatSectionProps) => {
         }
     }, [props.stream.user.name, user?.id])
 
+    // Listen for local points updates (from gifts)
+    useEffect(() => {
+        const handlePointsUpdate = (event: any) => {
+            const { points, streamerId, source } = event.detail;
+            // Only update if it's for this streamer AND it's NOT from chat (to avoid double counting)
+            if (String(streamerId) === String(props.stream.user.id) && source !== 'chat') {
+                console.log(`Received local points update (from ${source || 'unknown'}): +${points} pts`);
+                setCurrentPoints(prev => prev + points);
+                setPointsEarned(points);
+                setShowPointsBadge(true);
+                setTimeout(() => setShowPointsBadge(false), 3000);
+            }
+        };
+
+        window.addEventListener('userPointsUpdated', handlePointsUpdate);
+        return () => {
+            window.removeEventListener('userPointsUpdated', handlePointsUpdate);
+        };
+    }, [props.stream.user.id]);
+
     return (
         <div className="RightSide">
+            <LevelUpModal
+                isOpen={showLevelUpModal}
+                onClose={() => setShowLevelUpModal(false)}
+                levelName={newLevelData?.name || ''}
+                levelNumber={newLevelData?.number || 1}
+            />
             <div className="ChatTitle">
                 {user ?
                     <ProgressBar

@@ -7,6 +7,7 @@ import type { Stream, User } from "../../GlobalObjects/Objects_DataTypes"
 import "./StreamingSection.css"
 import { getStreamerLoyaltyLevels, type LoyaltyLevel } from "../../services/loyalty.service"
 import { getUserPoints } from "../../services/points.service"
+import { getCurrentUser } from "../../services/auth.service"
 
 interface StreamingSectionProps {
     stream: Stream
@@ -25,7 +26,17 @@ const StreamingSection = (props: StreamingSectionProps) => {
     const [loyaltyLevels, setLoyaltyLevels] = useState<LoyaltyLevel[]>([]);
     const [currentPoints, setCurrentPoints] = useState<number>(0);
 
-    const user = props.GetUser()
+    // Try to get user from props, fallback to direct localStorage access via service
+    const user = props.GetUser() || getCurrentUser();
+
+    // Guard clause to prevent rendering if stream data is missing
+    if (!props.stream || !props.stream.user) {
+        return <div className="MiddleSide d-flex justify-content-center align-items-center">
+            <div className="spinner-border text-light" role="status">
+                <span className="visually-hidden">Loading...</span>
+            </div>
+        </div>;
+    }
 
     useEffect(() => {
         SetIssighting(true)
@@ -40,7 +51,7 @@ const StreamingSection = (props: StreamingSectionProps) => {
     // Fetch loyalty levels and user points
     useEffect(() => {
         const fetchData = async () => {
-            if (props.stream.user.id) {
+            if (props.stream?.user?.id) {
                 try {
                     // Fetch levels
                     const levels = await getStreamerLoyaltyLevels(props.stream.user.id.toString());
@@ -50,8 +61,9 @@ const StreamingSection = (props: StreamingSectionProps) => {
                     // Fetch user points if logged in
                     if (user) {
                         const pointsData = await getUserPoints();
+                        const streamerId = String(props.stream.user.id);
                         const streamerPoints = pointsData.byStreamer.find(
-                            p => p.streamerId === props.stream.user.id.toString()
+                            p => String(p.streamerId) === streamerId
                         );
                         setCurrentPoints(streamerPoints ? streamerPoints.points : 0);
                     }
@@ -61,7 +73,54 @@ const StreamingSection = (props: StreamingSectionProps) => {
             }
         };
         fetchData();
-    }, [props.stream.user.id, user?.id]); // Add user.id dependency to refetch if user changes
+    }, [props.stream?.user?.id, user?.id]);
+
+    // Watch Time Points Logic
+    useEffect(() => {
+        if (!user || !props.stream.user.id || user.id === props.stream.user.id) return;
+
+        const POINTS_PER_INTERVAL = 10;
+        const INTERVAL_MS = 60000; // 1 minute
+
+        const interval = setInterval(async () => {
+            try {
+                console.log(`Awarding watch time points for streamer ${props.stream.user.name}`);
+                const { earnPoints } = await import('../../services/points.service');
+                const response = await earnPoints({
+                    streamerId: props.stream.user.id.toString(),
+                    action: 'watch_time',
+                    amount: POINTS_PER_INTERVAL
+                });
+
+                if (response.success) {
+                    console.log(`Earned ${response.pointsEarned} points for watch time`);
+                    setCurrentPoints(prev => prev + response.pointsEarned);
+
+                    // Optional: Show a small toast or notification?
+                    // For now, just updating the bar is enough as per request
+                }
+            } catch (error) {
+                console.error("Error awarding watch time points:", error);
+            }
+        }, INTERVAL_MS);
+
+        return () => clearInterval(interval);
+    }, [user, props.stream.user.id, props.stream.user.name]);
+
+    // Listen for local points updates (from gifts)
+    useEffect(() => {
+        const handlePointsUpdate = (event: any) => {
+            const { points, streamerId } = event.detail;
+            if (props.stream.user.id && String(streamerId) === String(props.stream.user.id)) {
+                setCurrentPoints(prev => prev + points);
+            }
+        };
+
+        window.addEventListener('userPointsUpdated', handlePointsUpdate);
+        return () => {
+            window.removeEventListener('userPointsUpdated', handlePointsUpdate);
+        };
+    }, [props.stream.user.id]);
 
     const isFollowing = () => {
         let following = false

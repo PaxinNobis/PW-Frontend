@@ -9,6 +9,7 @@ export interface User {
   level?: number;
   points?: number;
   coins?: number;
+  pfp?: string;
 }
 
 export interface LoginCredentials {

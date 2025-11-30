@@ -57,7 +57,7 @@ export interface UploadAvatarResponse {
  */
 export const getUserProfile = async (userId: string): Promise<UserProfile> => {
   const url = `${API_CONFIG.BASE_URL}/api/profile/${userId}?t=${new Date().getTime()}`;
-  const response = await apiGet<{ success: boolean; user: UserProfile }>(url, API_CONFIG.HEADERS);
+  const response = await apiGet<{ success: boolean; user: UserProfile }>(url, getAuthHeaders());
   return response.user;
 };
 

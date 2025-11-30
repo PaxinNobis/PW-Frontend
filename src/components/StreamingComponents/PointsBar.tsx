@@ -36,10 +36,26 @@ const PointsBar = ({ streamerId }: PointsBarProps) => {
 
     // Encontrar puntos del streamer actual
     const streamerPoints = points?.byStreamer.find(
-        s => s.streamerId === streamerId
+        s => String(s.streamerId) === String(streamerId)
     );
 
     const totalPoints = streamerPoints?.points || 0;
+
+    // Listen for points updates from messages or other sources
+    useEffect(() => {
+        const handlePointsUpdate = (event: any) => {
+            const { streamerId: eventStreamerId } = event.detail;
+            if (String(eventStreamerId) === String(streamerId)) {
+                console.log("PointsBar: Points updated, reloading...");
+                reload();
+            }
+        };
+
+        window.addEventListener('userPointsUpdated', handlePointsUpdate);
+        return () => {
+            window.removeEventListener('userPointsUpdated', handlePointsUpdate);
+        };
+    }, [streamerId, reload]);
 
     useEffect(() => {
         const fetchGifts = async () => {
@@ -87,6 +103,15 @@ const PointsBar = ({ streamerId }: PointsBarProps) => {
                 // Disparar evento para actualizar monedas en el Navbar (con actualización optimista)
                 window.dispatchEvent(new CustomEvent('userCoinsUpdated', {
                     detail: { cost: selectedGift.costo }
+                }));
+
+                // Disparar evento para actualizar puntos en ChatSection y StreamingSection
+                window.dispatchEvent(new CustomEvent('userPointsUpdated', {
+                    detail: {
+                        points: response.pointsEarned,
+                        streamerId: streamerId,
+                        source: 'gift'
+                    }
                 }));
             }
         } catch (error: any) {

@@ -9,8 +9,10 @@ interface ChatMessageProps {
 
 const ChatMessage = (props: ChatMessageProps) => {
     const getLevelName = () => {
+        // Use levelName from backend if provided
         if (props.mensaje.levelName) return props.mensaje.levelName;
 
+        // Fallback: try to find level name by ID
         const levelNum = props.mensaje.level || 1;
         if (!props.loyaltyLevels || props.loyaltyLevels.length === 0) return levelNum;
 
@@ -23,6 +25,7 @@ const ChatMessage = (props: ChatMessageProps) => {
             return props.loyaltyLevels[levelNum - 1].nombre;
         }
 
+        // If nothing found, return the level number
         return levelNum;
     };
 

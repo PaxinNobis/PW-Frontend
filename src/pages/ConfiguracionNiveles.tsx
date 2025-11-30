@@ -34,25 +34,13 @@ const ConfiguracionNiveles = () => {
         setNiveles(mapped);
       } else {
         // Default levels if none exist
-        setNiveles([
-          { id: 1, nombre: 'Novato', puntosRequeridos: 0, recompensa: 'Badge Novato' },
-          { id: 2, nombre: 'Fan', puntosRequeridos: 100, recompensa: 'Badge Fan' },
-          { id: 3, nombre: 'Super Fan', puntosRequeridos: 500, recompensa: 'Acceso a sorteos' },
-          { id: 4, nombre: 'Experto', puntosRequeridos: 1000, recompensa: 'VIP' },
-          { id: 5, nombre: 'Leyenda', puntosRequeridos: 5000, recompensa: 'Moderador' },
-        ]);
+        setNiveles([]);
       }
     } catch (err) {
       console.error('Error loading levels:', err);
       setError('No se pudieron cargar los niveles. Usando valores por defecto.');
       // Fallback defaults
-      setNiveles([
-        { id: 1, nombre: 'Novato', puntosRequeridos: 0, recompensa: 'Badge Novato' },
-        { id: 2, nombre: 'Fan', puntosRequeridos: 100, recompensa: 'Badge Fan' },
-        { id: 3, nombre: 'Super Fan', puntosRequeridos: 500, recompensa: 'Acceso a sorteos' },
-        { id: 4, nombre: 'Experto', puntosRequeridos: 1000, recompensa: 'VIP' },
-        { id: 5, nombre: 'Leyenda', puntosRequeridos: 5000, recompensa: 'Moderador' },
-      ]);
+      setNiveles([]);
     } finally {
       setLoading(false);
     }

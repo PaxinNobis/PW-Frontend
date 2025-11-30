@@ -111,24 +111,27 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
         case 'history':
           console.log('Historial de mensajes recibido:', data.messages);
           // Convertir historial al formato del frontend
-          const historyMessages = data.messages.map((msg: any) => ({
-            message: {
-              id: msg.id,
-              streamId: currentStreamId || '',
-              userId: msg.author.id,
-              texto: msg.text,
-              hora: new Date(msg.createdAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
-              user: {
-                id: msg.author.id,
-                name: msg.author.name,
-                pfp: msg.author.pfp || 'https://via.placeholder.com/40',
-                level: Number(msg.author.level) || 1,
-                levelName: msg.author.levelName
+          const historyMessages = data.messages.map((msg: any) => {
+            console.log("Raw history msg:", msg);
+            return {
+              message: {
+                id: msg.id,
+                streamId: currentStreamId || '',
+                userId: msg.user?.id || msg.author?.id,
+                texto: msg.text,
+                hora: new Date(msg.createdAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+                user: {
+                  id: msg.user?.id || msg.author?.id,
+                  name: msg.user?.name || msg.author?.name,
+                  pfp: msg.user?.pfp || msg.author?.pfp || 'https://via.placeholder.com/40',
+                  level: Number(msg.user?.level || msg.author?.level) || 1,
+                  levelName: msg.user?.levelName || msg.author?.levelName
+                },
+                createdAt: new Date(msg.createdAt)
               },
-              createdAt: new Date(msg.createdAt)
-            },
-            pointsEarned: 0
-          }));
+              pointsEarned: 0
+            }
+          });
           historyCallbacks.forEach(callback => callback(historyMessages));
           break;
         case 'message':
