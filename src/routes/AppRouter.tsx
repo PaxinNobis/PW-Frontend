@@ -83,7 +83,7 @@ const AppRouter = (props: AppRouterProps) => {
 							<Route path="/search/:name" element={<Search users={props.users} streams={props.streams} />} />
 							<Route path="/streaming/:name" element={<Streaming doFollowing={props.doFollowing} streams={props.streams} following={props.following} GetUser={props.GetUser} doChatting={props.doChatting} />} />
 							<Route path="/TyC" element={<TyC />} />
-							<Route path="/nosotros" element={<Nosotros />} />
+							<Route path="/nosotros" element={<Nosotros GetUser={props.GetUser} />} />
 							<Route path="/login" element={<Login doLogIn={props.doLogIn} />} />
 							<Route path="/signin" element={<Signin doSignIn={props.doSignIn} />} />
 							<Route path="/payment" element={<CardInput GetUser={props.GetUser} doPayment={props.doPayment} />} />
