@@ -1,23 +1,28 @@
-.MiddleSide{
+.MiddleSide {
     height: 100%;
     overflow-y: auto;
 }
 
-.VideoPlaceHolder{
+.VideoPlaceHolder {
     width: 100%;
     height: 80%;
     object-fit: cover;
 }
 
-.ImgStreamBox{
+.ImgStreamBox {
     width: 4rem;
     margin-right: 3%;
 }
 
-h4.TextBox{
+h4.TextBox {
     font-size: 1rem;
 }
 
-h3.TextBox{
+h3.TextBox {
     font-size: 1.2rem;
+}
+
+.stream-iframe {
+    aspect-ratio: 16/9;
+    border: none;
 }

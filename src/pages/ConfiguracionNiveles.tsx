@@ -114,7 +114,7 @@ const ConfiguracionNiveles = () => {
                 <th>Nombre del Nivel</th>
                 <th>Puntos Requeridos</th>
                 <th>Recompensa</th>
-                <th style={{ width: '100px' }}>Acciones</th>
+                <th className="actions-column">Acciones</th>
               </tr>
             </thead>
             <tbody>

@@ -107,12 +107,15 @@ export interface CoinPack {
 }
 
 export interface CheckoutSessionRequest {
-  coinPackId: string;
+  coinPackId?: number | string;
+  amount?: number; // Cantidad de monedas
+  price?: number;  // Precio en PEN (opcional, si el backend lo requiere)
 }
 
 export interface CheckoutSessionResponse {
   sessionId: string;
   url: string;
+  clientSecret?: string;
 }
 
 export interface WebhookResponse {

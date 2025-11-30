@@ -5,6 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { getAnalytics } from '../../services/panel.service';
+import './AnalyticsDashboard.css';
 
 interface Analytics {
   id: string;
@@ -106,11 +107,10 @@ const AnalyticsDashboard = () => {
                   <h2 className="fw-bold mb-0">{analytics.horasTransmitidas}</h2>
                 </div>
               </div>
-              <div className="progress" style={{ height: '8px' }}>
-                <div 
-                  className="progress-bar bg-primary" 
-                  role="progressbar" 
-                  style={{ width: '100%' }}
+              <div className="progress progress-bar-height">
+                <div
+                  className="progress-bar bg-primary w-100-percent"
+                  role="progressbar"
                 ></div>
               </div>
               <small className="text-muted">Total de horas en vivo</small>
@@ -131,11 +131,10 @@ const AnalyticsDashboard = () => {
                   <h2 className="fw-bold mb-0">{analytics.monedasRecibidas}</h2>
                 </div>
               </div>
-              <div className="progress" style={{ height: '8px' }}>
-                <div 
-                  className="progress-bar bg-success" 
-                  role="progressbar" 
-                  style={{ width: '100%' }}
+              <div className="progress progress-bar-height">
+                <div
+                  className="progress-bar bg-success w-100-percent"
+                  role="progressbar"
                 ></div>
               </div>
               <small className="text-muted">Total de monedas ganadas</small>
@@ -154,7 +153,7 @@ const AnalyticsDashboard = () => {
                 <div>
                   <h6 className="text-muted mb-0">Promedio de Monedas por Hora</h6>
                   <h2 className="fw-bold mb-0">
-                    {analytics.horasTransmitidas > 0 
+                    {analytics.horasTransmitidas > 0
                       ? (analytics.monedasRecibidas / analytics.horasTransmitidas).toFixed(2)
                       : '0.00'
                     }

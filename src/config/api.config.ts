@@ -26,6 +26,8 @@ export const API_CONFIG = {
     STREAMER_STATS: '/api/streamer/stats',
     STREAMER_GIFTS: (streamerId: string) => `/api/streamer/${streamerId}/gifts`,
     STREAMER_LOYALTY_LEVELS: (streamerId: string) => `/api/streamer/${streamerId}/loyalty-levels`,
+
+    // Panel
     PANEL_ANALYTICS: '/api/panel/analytics',
     PANEL_GIFTS: '/api/panel/gifts',
     PANEL_GIFT: (id: string) => `/api/panel/gifts/${id}`,
@@ -45,6 +47,7 @@ export const API_CONFIG = {
     PAYMENT_WEBHOOK: '/api/payment/webhook',
     PAYMENT_HISTORY: '/api/payment/transaction-history',
     PAYMENT_BALANCE: '/api/payment/balance',
+    PAYMENT_VERIFY_SESSION: '/api/payment/verify-session',
 
     // Points
     POINTS_GET: '/api/points',
@@ -76,9 +79,6 @@ export const API_CONFIG = {
     FRIENDS_REQUEST: '/api/friends/request',
     FRIENDS_ACCEPT: (requestId: string) => `/api/friends/accept/${requestId}`,
     FRIENDS_DELETE: (friendId: string) => `/api/friends/${friendId}`,
-
-    // Panel
-    // PANEL_LOYALTY_LEVELS already defined above
   },
   HEADERS: {
     'Content-Type': 'application/json',

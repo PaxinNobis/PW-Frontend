@@ -3,6 +3,8 @@ import ChatMessage from "./ChatMessage"
 import ChatBar from "./ChatBar"
 import ProgressBar from "./ProgressBar"
 import LevelUpModal from "./LevelUpModal"
+import GiftNotification from "./GiftNotification"
+import * as chatService from "../../services/chat.service";
 import { connectToChat, disconnectFromChat, onNewMessage, onHistory, onUserJoined, onUserLeft, clearCallbacks } from "../../services/chat.service"
 import type { Message } from "../../GlobalObjects/Objects_DataTypes"
 import type { User } from "../../GlobalObjects/Objects_DataTypes"
@@ -34,6 +36,9 @@ const ChatSection = (props: ChatSectionProps) => {
     const [showLevelUpModal, setShowLevelUpModal] = useState(false);
     const [newLevelData, setNewLevelData] = useState<{ name: string; number: number } | null>(null);
     const previousLevelIdRef = useRef<number | null>(null);
+
+    // Gift Notification State
+    const [giftNotification, setGiftNotification] = useState<{ sender: string; gift: string } | null>(null);
 
     // Refs to access latest state inside useEffect without re-triggering it
     const loyaltyLevelsRef = useRef<LoyaltyLevel[]>([]);
@@ -206,6 +211,12 @@ const ChatSection = (props: ChatSectionProps) => {
     useEffect(() => {
         if (!user) return
 
+        // Prevent connecting to chat if the stream is a temporary/offline placeholder
+        if (props.stream.id && String(props.stream.id).startsWith('temp-')) {
+            console.log("ChatSection: Skipping connection for temporary stream ID:", props.stream.id);
+            return;
+        }
+
         const streamerNickname = props.stream.user.name; // Usar el nombre del streamer
 
         // Limpiar mensajes anteriores
@@ -257,9 +268,21 @@ const ChatSection = (props: ChatSectionProps) => {
 
             // Escuchar nuevos mensajes
             const handleNewMessage = async (data: any) => {
-                // Filter new messages by streamId
-                if (data.message.streamId && props.stream.id && data.message.streamId !== props.stream.id) {
-                    return;
+                console.log("ChatSection: New message received", data);
+                console.log("ChatSection: Stream ID check:", {
+                    msgStreamId: data.message.streamId,
+                    propStreamId: props.stream.id,
+                    match: String(data.message.streamId) === String(props.stream.id)
+                });
+
+                // Filter new messages by streamId (ensure string comparison)
+                // If streamId is missing in message, we assume it belongs to current stream (fallback)
+                if (data.message.streamId && props.stream.id && String(data.message.streamId) !== String(props.stream.id)) {
+                    console.warn("ChatSection: Stream ID mismatch, but allowing message for now:", {
+                        msgStreamId: data.message.streamId,
+                        propStreamId: props.stream.id
+                    });
+                    // return; // COMMENTED OUT TO FIX STREAMER VISIBILITY ISSUES (temp-id vs real-id)
                 }
 
                 const msgKey = buildMessageKey(data.message.id, data.message.createdAt, `${data.message.texto}-${data.message.hora}`)
@@ -267,9 +290,6 @@ const ChatSection = (props: ChatSectionProps) => {
                 // Priority: Backend provided level -> Local calculation -> Default
                 let dynamicLevel = data.message.user?.level || data.message.level;
                 let dynamicLevelName = data.message.user?.levelName || data.message.levelName;
-
-                // console.log("Backend Data Received:", data);
-                // console.log("Points Earned:", data.pointsEarned);
 
                 // Only calculate locally if backend didn't provide the level (fallback)
                 if (!dynamicLevel && data.message.userId === user.id) {
@@ -290,7 +310,6 @@ const ChatSection = (props: ChatSectionProps) => {
                     if (calculatedLevel) {
                         dynamicLevel = calculatedLevel.id || 1;
                         dynamicLevelName = calculatedLevel.nombre;
-                        // console.log(`Level updated locally (fallback): ${dynamicLevelName} (${newPoints} points)`);
                     }
                 }
 
@@ -325,26 +344,21 @@ const ChatSection = (props: ChatSectionProps) => {
                         discordlink: ''
                     }
                 }
-                // console.log("New Message constructed:", newMessage);
                 appendMessageIfNew(newMessage, msgKey)
 
                 // Mostrar puntos ganados si es el usuario actual
-                // console.log("Checking points update:", {
-                //     messageUserId: data.message.userId,
-                //     currentUserId: user.id,
-                //     pointsEarned: data.pointsEarned,
-                //     match: String(data.message.userId) === String(user.id)
-                // });
-
                 if (String(data.message.userId) === String(user.id)) {
-                    if (data.pointsEarned && data.pointsEarned > 0) {
-                        // console.log(`Earned ${data.pointsEarned} points from message (optimistic update)`);
+                    // Check if user is the streamer (Streamers don't earn points in their own chat)
+                    const isStreamer = String(user.id) === String(props.stream.user.id);
 
-                        // Update points optimistically
+                    if (isStreamer) {
+                        // Explicitly do nothing for streamer regarding points
+                        // console.log("Streamer message detected - No points awarded.");
+                    } else if (data.pointsEarned && data.pointsEarned > 0) {
+                        // Update points optimistically ONLY if not streamer
                         setPointsEarned(data.pointsEarned)
                         setCurrentPoints(prev => {
                             const newPoints = prev + data.pointsEarned;
-                            // console.log(`Points updated: ${prev} -> ${newPoints}`);
                             return newPoints;
                         })
                         setShowPointsBadge(true)
@@ -358,23 +372,6 @@ const ChatSection = (props: ChatSectionProps) => {
                                 source: 'chat'
                             }
                         }));
-
-                        // TODO: Backend is not persisting message points correctly
-                        // Once backend is fixed, uncomment this to sync with DB:
-                        /*
-                        try {
-                            const { getUserPoints } = await import('../../services/points.service');
-                            const pointsData = await getUserPoints();
-                            const streamerId = String(props.stream.user.id);
-                            const streamerPoints = pointsData.byStreamer.find(
-                                p => String(p.streamerId) === streamerId
-                            );
-                            const actualPoints = streamerPoints ? streamerPoints.points : 0;
-                            setCurrentPoints(actualPoints);
-                        } catch (error) {
-                            console.error("Error fetching updated points:", error);
-                        }
-                        */
                     }
                     doChattingRef.current(newMessage, props.stream)
                 }
@@ -392,7 +389,6 @@ const ChatSection = (props: ChatSectionProps) => {
 
         } catch (error) {
             // console.error('Error al conectar WebSocket:', error)
-            // console.warn('Continuando sin WebSocket. Los mensajes solo se verán localmente.')
         }
 
         return () => {
@@ -414,7 +410,6 @@ const ChatSection = (props: ChatSectionProps) => {
             const { points, streamerId, source } = event.detail;
             // Only update if it's for this streamer AND it's NOT from chat (to avoid double counting)
             if (String(streamerId) === String(props.stream.user.id) && source !== 'chat') {
-                // console.log(`Received local points update (from ${source || 'unknown'}): +${points} pts`);
                 setCurrentPoints(prev => prev + points);
                 setPointsEarned(points);
                 setShowPointsBadge(true);
@@ -428,6 +423,22 @@ const ChatSection = (props: ChatSectionProps) => {
         };
     }, [props.stream.user.id]);
 
+    // Listen for gift events from WebSocket
+    useEffect(() => {
+        const unsubscribe = chatService.onGiftReceived((giftData) => {
+            setGiftNotification({
+                sender: giftData.senderName,
+                gift: giftData.giftName
+            });
+        });
+
+        return () => {
+            unsubscribe();
+        };
+    }, []);
+
+    const isStreamer = user && String(user.id) === String(props.stream.user.id);
+
     return (
         <div className="RightSide">
             <LevelUpModal
@@ -436,8 +447,15 @@ const ChatSection = (props: ChatSectionProps) => {
                 levelName={newLevelData?.name || ''}
                 levelNumber={newLevelData?.number || 1}
             />
+            {giftNotification && (
+                <GiftNotification
+                    senderName={giftNotification.sender}
+                    giftName={giftNotification.gift}
+                    onClose={() => setGiftNotification(null)}
+                />
+            )}
             <div className="ChatTitle">
-                {user ?
+                {user && !isStreamer ?
                     <ProgressBar
                         actual={progress.current}
                         max={progress.max}
@@ -454,7 +472,12 @@ const ChatSection = (props: ChatSectionProps) => {
                 {
                     messages.map((mensaje: Message, index: number) => {
                         return (
-                            <ChatMessage key={`msg-${index}`} mensaje={mensaje} loyaltyLevels={loyaltyLevels} />
+                            <ChatMessage
+                                key={`msg-${index}`}
+                                mensaje={mensaje}
+                                loyaltyLevels={loyaltyLevels}
+                                streamerId={props.stream.user.id}
+                            />
                         )
                     })
                 }

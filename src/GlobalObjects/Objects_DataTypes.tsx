@@ -6,7 +6,8 @@ export type Stream = {
     title: string;
     viewersnumber: number;
     viewersid: User[];
-    messagelist: Message[]
+    messagelist: Message[];
+    iframeUrl?: string;
 };
 
 export type Message = {
@@ -24,6 +25,7 @@ export type GameTag = {
 }
 
 export type Game = {
+    id: string;
     name: string;
     photo: string;
     spectators: number;

@@ -48,7 +48,7 @@ export interface PointsHistoryResponse {
  * Obtener puntos del usuario
  */
 export const getUserPoints = async (): Promise<UserPoints> => {
-  const url = `${API_CONFIG.BASE_URL}/api/points`;
+  const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.POINTS_GET}`;
   return apiGet<UserPoints>(url, getAuthHeaders());
 };
 
@@ -56,7 +56,7 @@ export const getUserPoints = async (): Promise<UserPoints> => {
  * Ganar puntos por acción
  */
 export const earnPoints = async (data: EarnPointsRequest): Promise<EarnPointsResponse> => {
-  const url = `${API_CONFIG.BASE_URL}/api/points/earn`;
+  const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.POINTS_EARN}`;
   return apiPost<EarnPointsResponse>(url, data, getAuthHeaders());
 };
 
@@ -76,7 +76,7 @@ export const getPointsHistory = async (
   page: number = 1,
   limit: number = 20
 ): Promise<PointsHistoryResponse> => {
-  let url = `${API_CONFIG.BASE_URL}/api/points/history?page=${page}&limit=${limit}`;
+  let url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.POINTS_HISTORY}?page=${page}&limit=${limit}`;
   if (streamerId) {
     url += `&streamerId=${streamerId}`;
   }

@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from 'react';
 import { getCustomGifts, createCustomGift, updateCustomGift, deleteCustomGift } from '../../services/panel.service';
+import './GiftsManager.css';
 
 interface Gift {
   id: string;
@@ -24,7 +25,7 @@ const GiftsManager = () => {
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingGift, setEditingGift] = useState<Gift | null>(null);
-  
+
   // Form state
   const [formData, setFormData] = useState({
     nombre: '',
@@ -52,7 +53,7 @@ const GiftsManager = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       if (editingGift) {
         // Actualizar regalo existente
@@ -63,7 +64,7 @@ const GiftsManager = () => {
         await createCustomGift(formData);
         console.log('Regalo creado');
       }
-      
+
       // Recargar lista y cerrar modal
       await loadGifts();
       handleCloseModal();
@@ -75,7 +76,7 @@ const GiftsManager = () => {
 
   const handleDelete = async (id: string) => {
     if (!confirm('¿Estás seguro de eliminar este regalo?')) return;
-    
+
     try {
       await deleteCustomGift(id);
       console.log('Regalo eliminado');
@@ -121,8 +122,8 @@ const GiftsManager = () => {
           <i className="bi bi-gift me-2"></i>
           Regalos Personalizados
         </h2>
-        <button 
-          className="btn btn-primary" 
+        <button
+          className="btn btn-primary"
           onClick={() => setShowModal(true)}
         >
           <i className="bi bi-plus-circle me-2"></i>
@@ -162,14 +163,14 @@ const GiftsManager = () => {
                     </span>
                   </div>
                   <div className="d-flex gap-2 mt-3">
-                    <button 
+                    <button
                       className="btn btn-sm btn-outline-primary flex-fill"
                       onClick={() => handleEdit(gift)}
                     >
                       <i className="bi bi-pencil me-1"></i>
                       Editar
                     </button>
-                    <button 
+                    <button
                       className="btn btn-sm btn-outline-danger"
                       onClick={() => handleDelete(gift.id)}
                     >
@@ -185,16 +186,16 @@ const GiftsManager = () => {
 
       {/* Modal de crear/editar */}
       {showModal && (
-        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+        <div className="modal show d-block modal-backdrop-custom" tabIndex={-1}>
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">
                   {editingGift ? 'Editar Regalo' : 'Nuevo Regalo'}
                 </h5>
-                <button 
-                  type="button" 
-                  className="btn-close" 
+                <button
+                  type="button"
+                  className="btn-close"
                   onClick={handleCloseModal}
                 ></button>
               </div>
@@ -234,9 +235,9 @@ const GiftsManager = () => {
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button 
-                    type="button" 
-                    className="btn btn-secondary" 
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
                     onClick={handleCloseModal}
                   >
                     Cancelar

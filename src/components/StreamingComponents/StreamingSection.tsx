@@ -2,12 +2,14 @@ import { useState, useEffect } from "react"
 import FollowButton from "./FollowButton"
 import ProgressBar from "./ProgressBar"
 import SocialLink from "./SocialLink"
+import GiftNotification from "./GiftNotification"
 import { Link } from "react-router-dom"
 import type { Stream, User } from "../../GlobalObjects/Objects_DataTypes"
 import "./StreamingSection.css"
 import { getStreamerLoyaltyLevels, type LoyaltyLevel } from "../../services/loyalty.service"
 import { getUserPoints } from "../../services/points.service"
 import { getCurrentUser } from "../../services/auth.service"
+import * as chatService from "../../services/chat.service"
 
 interface StreamingSectionProps {
     stream: Stream
@@ -25,6 +27,7 @@ const StreamingSection = (props: StreamingSectionProps) => {
     const [Issighting, SetIssighting] = useState<boolean>(true)
     const [loyaltyLevels, setLoyaltyLevels] = useState<LoyaltyLevel[]>([]);
     const [currentPoints, setCurrentPoints] = useState<number>(0);
+    const [giftNotification, setGiftNotification] = useState<{ sender: string; gift: string } | null>(null);
 
     // Try to get user from props, fallback to direct localStorage access via service
     const user = props.GetUser() || getCurrentUser();
@@ -56,10 +59,14 @@ const StreamingSection = (props: StreamingSectionProps) => {
         const fetchData = async () => {
             if (props.stream?.user?.id) {
                 try {
-                    // Fetch levels
-                    const levels = await getStreamerLoyaltyLevels(props.stream.user.id.toString());
-                    const sortedLevels = levels.sort((a, b) => a.puntosRequeridos - b.puntosRequeridos);
-                    setLoyaltyLevels(sortedLevels);
+                    // Fetch levels only if user is logged in
+                    // If loyalty levels are public, this check might need to be removed and the backend updated to allow public access
+                    // But to fix the 401 error as requested, we must check for user
+                    if (user) {
+                        const levels = await getStreamerLoyaltyLevels(props.stream.user.id.toString());
+                        const sortedLevels = levels.sort((a, b) => a.puntosRequeridos - b.puntosRequeridos);
+                        setLoyaltyLevels(sortedLevels);
+                    }
 
                     // Fetch user points if logged in
                     if (user) {
@@ -123,7 +130,21 @@ const StreamingSection = (props: StreamingSectionProps) => {
         return () => {
             window.removeEventListener('userPointsUpdated', handlePointsUpdate);
         };
-    }, [props.stream.user.id]);
+    }, [props.stream.user.id, user]);
+
+    // Listen for gift events from WebSocket
+    useEffect(() => {
+        const unsubscribe = chatService.onGiftReceived((giftData) => {
+            setGiftNotification({
+                sender: giftData.senderName,
+                gift: giftData.giftName
+            });
+        });
+
+        return () => {
+            unsubscribe();
+        };
+    }, []);
 
     const isFollowing = () => {
         let following = false
@@ -180,99 +201,108 @@ const StreamingSection = (props: StreamingSectionProps) => {
         (user && props.stream.user.id === user.id ? localStorage.getItem('stream_iframe_url') : null);
 
     return (
-        <div className="MiddleSide">
-            <div className="VideoPlace">
-                {iframeUrl ? (
-                    <iframe
-                        src={iframeUrl}
-                        title="Stream Video"
-                        className="w-100 h-100"
-                        style={{ aspectRatio: '16/9', border: 'none' }}
-                        allowFullScreen
-                    ></iframe>
-                ) : (
-                    <img
-                        className="VideoPlaceHolder"
-                        src={(props.stream.thumbnail || "https://placehold.co/800x450?text=No+Thumbnail").replace('via.placeholder.com', 'placehold.co')}
-                        alt="Stream"
-                    />
-                )}
-            </div>
-            <div className="d-flex justify-content-between my-3">
-                <div className="text-start d-flex align-items-center">
-                    <div className="ImgStreamBox mx-3">
-                        <Link to={`/profile/${props.stream.user.name}`}>
-                            <img
-                                className="StreamerImg"
-                                src={(props.stream.user.pfp || "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-70x70.png").replace('via.placeholder.com', 'placehold.co')}
-                                alt="Img"
-                            />
-                        </Link>
-                    </div>
-                    <div>
-                        <h3 className="TextBox">{props.stream.user.name}</h3>
-                        <h4 className="TextBox my-0">{props.stream.title}</h4>
-                        <h4 className="TextBox m-0">{props.stream.game.name}</h4>
-                    </div>
+        <>
+            {giftNotification && (
+                <GiftNotification
+                    senderName={giftNotification.sender}
+                    giftName={giftNotification.gift}
+                    onClose={() => setGiftNotification(null)}
+                />
+            )}
+            <div className="MiddleSide">
+                <div className="VideoPlace">
+                    {iframeUrl ? (
+                        <iframe
+                            src={iframeUrl}
+                            title="Stream Video"
+                            className="w-100 h-100 stream-iframe"
+                            allowFullScreen
+                        ></iframe>
+                    ) : (
+                        <img
+                            className="VideoPlaceHolder"
+                            src={(props.stream.thumbnail || "https://placehold.co/800x450?text=No+Thumbnail").replace('via.placeholder.com', 'placehold.co')}
+                            alt="Stream"
+                        />
+                    )}
                 </div>
-                <div className="text-start ">
-                    {
-                        !Issighting ?
-                            ""
-                            :
-                            <FollowButton doFollowing={props.doFollowing} isFollowing={isFollowing()} user={props.stream.user}></FollowButton>
-                    }
-                    <div className="ms-4">
-                        <span className="badge bg-danger">{props.stream.viewersnumber >= 1000000 ? DivisiónAproximada(props.stream.viewersnumber, 1000000, 1) + " M " : props.stream.viewersnumber >= 1000 ? DivisiónAproximada(props.stream.viewersnumber, 1000, 1) + " K " : props.stream.viewersnumber}viewers</span>
+                <div className="d-flex justify-content-between my-3">
+                    <div className="text-start d-flex align-items-center">
+                        <div className="ImgStreamBox mx-3">
+                            <Link to={`/profile/${props.stream.user.name}`}>
+                                <img
+                                    className="StreamerImg"
+                                    src={(props.stream.user.pfp || "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-70x70.png").replace('via.placeholder.com', 'placehold.co')}
+                                    alt="Img"
+                                />
+                            </Link>
+                        </div>
+                        <div>
+                            <h3 className="TextBox">{props.stream.user.name}</h3>
+                            <h4 className="TextBox my-0">{props.stream.title}</h4>
+                            <h4 className="TextBox m-0">{props.stream.game.name}</h4>
+                        </div>
                     </div>
-                </div>
-            </div>
-            <div className="d-flex justify-content-between ">
-                <div className="fill-sides">
-                    <div className="d-flex justify-content-between ">
-                        <h3 className="TextBox mx-4">Acerca de {props.stream.user.name} </h3>
-                    </div>
-                    <div className="alert alert-info m-4 mt-2 text-card border-0">
-                        <div className="d-flex justify-content-between my-3">
-                            <div className="mx-3">
-                                <h3 className="TextBox mx-3">{props.stream.user.followers.length} seguidores</h3>
-                                <p className="mx-3 text-break word-break-break-word">{props.stream.user.bio ? props.stream.user.bio : `Hola soy ${props.stream.user.name} y hago streams!`}</p>
-                            </div>
-                            <div className="text-end me-5">
-                                <SocialLink link={props.stream.user.xlink} icon="bi-twitter-x" text="Twitter"></SocialLink>
-                                <SocialLink link={props.stream.user.instagramlink} icon="bi-instagram" text="Instagram"></SocialLink>
-                                <SocialLink link={props.stream.user.tiktoklink} icon="bi-tiktok" text="Tiktok"></SocialLink>
-                                <SocialLink link={props.stream.user.discordlink} icon="bi-discord" text="Discord"></SocialLink>
-                                <SocialLink link={props.stream.user.youtubelink} icon="bi-youtube" text="Youtube"></SocialLink>
-                            </div>
+                    <div className="text-start ">
+                        {
+                            !Issighting ?
+                                ""
+                                :
+                                <FollowButton doFollowing={props.doFollowing} isFollowing={isFollowing()} user={props.stream.user}></FollowButton>
+                        }
+                        <div className="ms-4">
+                            <span className="badge bg-danger">{props.stream.viewersnumber >= 1000000 ? DivisiónAproximada(props.stream.viewersnumber, 1000000, 1) + " M " : props.stream.viewersnumber >= 1000 ? DivisiónAproximada(props.stream.viewersnumber, 1000, 1) + " K " : props.stream.viewersnumber}viewers</span>
                         </div>
                     </div>
                 </div>
-                <div className="fill-sides">
-                    <div className="d-flex justify-content-between">
-                        <h3 className="TextBox mx-4">Metas de {props.stream.user.name} </h3>
+                <div className="d-flex justify-content-between ">
+                    <div className="fill-sides">
+                        <div className="d-flex justify-content-between ">
+                            <h3 className="TextBox mx-4">Acerca de {props.stream.user.name} </h3>
+                        </div>
+                        <div className="alert alert-info m-4 mt-2 text-card border-0">
+                            <div className="d-flex justify-content-between my-3">
+                                <div className="mx-3">
+                                    <h3 className="TextBox mx-3">{props.stream.user.followers.length} seguidores</h3>
+                                    <p className="mx-3 text-break word-break-break-word">{props.stream.user.bio ? props.stream.user.bio : `Hola soy ${props.stream.user.name} y hago streams!`}</p>
+                                </div>
+                                <div className="text-end me-5">
+                                    <SocialLink link={props.stream.user.xlink} icon="bi-twitter-x" text="Twitter"></SocialLink>
+                                    <SocialLink link={props.stream.user.instagramlink} icon="bi-instagram" text="Instagram"></SocialLink>
+                                    <SocialLink link={props.stream.user.tiktoklink} icon="bi-tiktok" text="Tiktok"></SocialLink>
+                                    <SocialLink link={props.stream.user.discordlink} icon="bi-discord" text="Discord"></SocialLink>
+                                    <SocialLink link={props.stream.user.youtubelink} icon="bi-youtube" text="Youtube"></SocialLink>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div className="alert alert-info m-4 mt-2 text-card border-0">
-                        <div className="my-3">
-                            <ProgressBar actual={props.stream.user.streaminghours} max={props.stream.user.streamerlevel.max_hours} topic={"horas"} ></ProgressBar >
-                            <ProgressBar actual={props.stream.user.followers.length} max={props.stream.user.streamerlevel.max_followers} topic={"followers"}></ProgressBar>
+                    <div className="fill-sides">
+                        <div className="d-flex justify-content-between">
+                            <h3 className="TextBox mx-4">Metas de {props.stream.user.name} </h3>
+                        </div>
+                        <div className="alert alert-info m-4 mt-2 text-card border-0">
+                            <div className="my-3">
+                                <ProgressBar actual={props.stream.user.streaminghours} max={props.stream.user.streamerlevel.max_hours} topic={"horas"} ></ProgressBar >
+                                <ProgressBar actual={props.stream.user.followers.length} max={props.stream.user.streamerlevel.max_followers} topic={"followers"}></ProgressBar>
 
-                            {user && user.id !== props.stream.user.id && (
-                                <>
-                                    <hr className="my-3" />
-                                    <h5 className="TextBox mb-2">Mi Progreso como Espectador</h5>
-                                    <ProgressBar
-                                        actual={progress.current}
-                                        max={progress.max}
-                                        topic={progress.topic}
-                                    ></ProgressBar>
-                                </>
-                            )}
+                                {user && user.id !== props.stream.user.id && (
+                                    <>
+                                        <hr className="my-3" />
+                                        <h5 className="TextBox mb-2">Mi Progreso como Espectador</h5>
+                                        <ProgressBar
+                                            actual={progress.current}
+                                            max={progress.max}
+                                            topic={progress.topic}
+                                        ></ProgressBar>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     )
 }
+
 export default StreamingSection

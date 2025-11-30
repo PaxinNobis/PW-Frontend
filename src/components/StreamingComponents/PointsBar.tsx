@@ -6,6 +6,7 @@ import type { CustomGift } from '../../types/api';
 import ConfirmationModal from '../Shared/ConfirmationModal';
 import "./PointsBar.css";
 import "../../GlobalObjects/Icons.css";
+import { getCurrentUser } from '../../services/auth.service';
 
 interface PointsBarProps {
     streamerId: string;
@@ -34,6 +35,15 @@ const PointsBar = ({ streamerId }: PointsBarProps) => {
         type: 'success'
     });
 
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+    useEffect(() => {
+        const user = getCurrentUser();
+        if (user) setCurrentUserId(String(user.id));
+    }, []);
+
+    const isStreamer = String(currentUserId) === String(streamerId);
+
     // Encontrar puntos del streamer actual
     const streamerPoints = points?.byStreamer.find(
         s => String(s.streamerId) === String(streamerId)
@@ -59,6 +69,12 @@ const PointsBar = ({ streamerId }: PointsBarProps) => {
     useEffect(() => {
         const fetchGifts = async () => {
             if (!streamerId) return;
+
+            // Check if user is logged in before fetching gifts
+            // Gifts are usually user-specific or require auth context in this app
+            const user = getCurrentUser();
+            if (!user) return;
+
             setLoadingGifts(true);
             try {
                 const response = await getStreamerGifts(streamerId);
@@ -147,44 +163,54 @@ const PointsBar = ({ streamerId }: PointsBarProps) => {
                 <span className="fw-bold">{totalPoints} pts</span>
             </div>
             <div className="dropup">
-                <button className="support-button d-flex justify-content-center align-items-center border-0" type="button" id="giftsDropdown" data-bs-toggle="dropdown"
-                    aria-expanded="false">
+                <button
+                    className="support-button d-flex justify-content-center align-items-center border-0"
+                    type="button"
+                    id="giftsDropdown"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                    disabled={isStreamer}
+                    style={isStreamer ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                    title={isStreamer ? "No puedes enviarte regalos a ti mismo" : "Enviar regalo"}
+                >
                     <i className="bi bi-gift-fill ministars"></i>
                 </button>
-                <ul className="dropdown-menu dropdown-menu-end p-2" aria-labelledby="giftsDropdown" style={{ minWidth: '250px' }}>
-                    <li>
-                        <div className="dropdown-header fw-bold text-dark">
-                            Regalos disponibles
-                        </div>
-                    </li>
-                    <li><hr className="dropdown-divider" /></li>
-                    {loadingGifts ? (
-                        <li><div className="dropdown-item-text text-muted">Cargando regalos...</div></li>
-                    ) : gifts.length > 0 ? (
-                        gifts.map(gift => (
-                            <li key={gift.id}>
-                                <button
-                                    className="dropdown-item d-flex justify-content-between align-items-center py-2"
-                                    type="button"
-                                    onClick={() => handleGiftClick(gift)}
-                                    disabled={!!sendingGift}
-                                >
-                                    <span>{gift.nombre}</span>
-                                    <div className="d-flex flex-column align-items-end ms-2">
-                                        <span className="badge bg-warning text-dark rounded-pill mb-1">
-                                            {gift.costo} <i className="bi bi-star-fill small"></i>
-                                        </span>
-                                        <span className="badge bg-info text-dark rounded-pill">
-                                            +{gift.puntos} pts
-                                        </span>
-                                    </div>
-                                </button>
-                            </li>
-                        ))
-                    ) : (
-                        <li><div className="dropdown-item-text text-muted small">Este streamer no tiene regalos configurados.</div></li>
-                    )}
-                </ul>
+                {!isStreamer && (
+                    <ul className="dropdown-menu dropdown-menu-end p-2 gifts-dropdown-menu" aria-labelledby="giftsDropdown">
+                        <li>
+                            <div className="dropdown-header fw-bold text-dark">
+                                Regalos disponibles
+                            </div>
+                        </li>
+                        <li><hr className="dropdown-divider" /></li>
+                        {loadingGifts ? (
+                            <li><div className="dropdown-item-text text-muted">Cargando regalos...</div></li>
+                        ) : gifts.length > 0 ? (
+                            gifts.map(gift => (
+                                <li key={gift.id}>
+                                    <button
+                                        className="dropdown-item d-flex justify-content-between align-items-center py-2"
+                                        type="button"
+                                        onClick={() => handleGiftClick(gift)}
+                                        disabled={!!sendingGift}
+                                    >
+                                        <span>{gift.nombre}</span>
+                                        <div className="d-flex flex-column align-items-end ms-2">
+                                            <span className="badge bg-warning text-dark rounded-pill mb-1">
+                                                {gift.costo} <i className="bi bi-star-fill small"></i>
+                                            </span>
+                                            <span className="badge bg-info text-dark rounded-pill">
+                                                +{gift.puntos} pts
+                                            </span>
+                                        </div>
+                                    </button>
+                                </li>
+                            ))
+                        ) : (
+                            <li><div className="dropdown-item-text text-muted small">Este streamer no tiene regalos configurados.</div></li>
+                        )}
+                    </ul>
+                )}
             </div>
 
             {/* Modal de Confirmación */}

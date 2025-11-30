@@ -1,4 +1,4 @@
-// Servicio de Chat con WebSocket Nativo
+
 import { API_CONFIG, getAuthHeaders } from '../config/api.config';
 import { apiPost, apiGet, apiDelete } from '../utils/api.utils';
 
@@ -10,6 +10,7 @@ let userJoinedCallbacks: Array<(data: { userId: string; userName: string }) => v
 let viewerCountCallbacks: Array<(count: number) => void> = [];
 let typingCallbacks: Array<(data: { userId: string; userName: string; isTyping: boolean }) => void> = [];
 let userLeftCallbacks: Array<(data: { userId: string; userName: string }) => void> = [];
+let giftReceivedCallbacks: Array<(data: GiftReceivedEvent) => void> = [];
 let currentStreamId: string | null = null;
 
 export interface ChatMessage {
@@ -31,6 +32,16 @@ export interface ChatMessage {
 export interface SendMessageResponse {
   message: ChatMessage;
   pointsEarned: number;
+}
+
+export interface GiftReceivedEvent {
+  giftName: string;
+  giftCost: number;
+  senderName: string;
+  senderId: string;
+  streamerName: string;
+  streamerId: string;
+  timestamp: string;
 }
 
 /**
@@ -58,16 +69,16 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
       return;
     }
     isConnected = true;
-    // console.log('WebSocket conectado');
 
-    // Unirse al chat con autenticación
+
+
     if (socket) {
       const joinPayload = {
         type: 'join',
         token: token,
         streamerNickname: streamerNickname
       };
-      // console.log('Enviando payload JOIN:', joinPayload);
+
       socket.send(JSON.stringify(joinPayload));
     }
   };
@@ -78,9 +89,9 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
     }
     try {
       const data = JSON.parse(event.data);
-      // console.log('Mensaje recibido del servidor:', data);
 
-      // Manejar diferentes tipos de mensajes
+
+
       switch (data.type) {
         case 'joined':
           // console.log('Unido al chat:', data.streamerName);
@@ -156,6 +167,20 @@ export const connectToChat = (streamerNickname: string): WebSocket => {
             pointsEarned: 1
           };
           messageCallbacks.forEach(callback => callback(messageData));
+          break;
+        case 'gift':
+          // Handle gift received event - backend sends data inside a 'data' property
+          const giftData = data.data || data;
+          const giftEvent: GiftReceivedEvent = {
+            giftName: giftData.giftName,
+            giftCost: giftData.giftCost,
+            senderName: giftData.senderName,
+            senderId: giftData.senderId,
+            streamerName: giftData.streamerName,
+            streamerId: giftData.streamerId,
+            timestamp: giftData.timestamp
+          };
+          giftReceivedCallbacks.forEach(callback => callback(giftEvent));
           break;
         case 'error':
           console.error('Error del servidor:', data.message);
@@ -238,7 +263,10 @@ export const clearCallbacks = () => {
   messageCallbacks = [];
   historyCallbacks = [];
   userJoinedCallbacks = [];
+  viewerCountCallbacks = [];
+  typingCallbacks = [];
   userLeftCallbacks = [];
+  giftReceivedCallbacks = [];
 };
 
 /**
@@ -282,9 +310,19 @@ export const onUserLeft = (callback: (data: { userId: string; userName: string }
 };
 
 /**
+ * Suscribirse a eventos de regalo
+ */
+export const onGiftReceived = (callback: (data: GiftReceivedEvent) => void) => {
+  giftReceivedCallbacks.push(callback);
+  return () => {
+    giftReceivedCallbacks = giftReceivedCallbacks.filter(cb => cb !== callback);
+  };
+};
+
+/**
  * Escuchar cuando se elimina un mensaje
  */
-export const onMessageDeleted = (callback: (data: { messageId: string }) => void) => {
+export const onMessageDeleted = (_callback: (data: { messageId: string }) => void) => {
   // Implementar cuando sea necesario
 };
 

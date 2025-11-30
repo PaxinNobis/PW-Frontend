@@ -16,6 +16,7 @@ import TyC from '../components/Terms_AboutUsComponents/TyC';
 import Nosotros from '../components/Terms_AboutUsComponents/Nosotros';
 import Streaming from '../components/StreamingComponents/Streaming';
 import CardInput from '../components/PayingComponents/CardInput';
+import PaymentReturn from '../components/PayingComponents/PaymentReturn';
 
 import Profile from '../components/ProfileComponents/Profile';
 import PrivateRoute from './PrivateRoute';
@@ -60,6 +61,7 @@ interface AppRouterProps {
 	doSignIn: (name: string, email: string, pass: string) => Promise<number>
 	doLogOut: () => void
 	doChatting: (message: Message, stream: Stream) => void
+	doStreaming: (user: string, title: string, game: string, link: string) => Promise<void>
 	GetUser: () => User | null
 }
 
@@ -85,9 +87,11 @@ const AppRouter = (props: AppRouterProps) => {
 							<Route path="/login" element={<Login doLogIn={props.doLogIn} />} />
 							<Route path="/signin" element={<Signin doSignIn={props.doSignIn} />} />
 							<Route path="/payment" element={<CardInput GetUser={props.GetUser} doPayment={props.doPayment} />} />
+							<Route path="/payment/return" element={<PaymentReturn />} />
 
 							<Route path="/profile/:identifier" element={<Profile doFollowing={props.doFollowing} following={props.following} users={props.users} GetUser={props.GetUser} />} />
-							<Route path="/panelcreador" element={<PrivateRoute><PanelControl GetUser={props.GetUser} doChatting={props.doChatting} /></PrivateRoute>} />
+							<Route path="/profile/:identifier" element={<Profile doFollowing={props.doFollowing} following={props.following} users={props.users} GetUser={props.GetUser} />} />
+							<Route path="/panelcreador" element={<PrivateRoute><PanelControl GetUser={props.GetUser} doChatting={props.doChatting} doStreaming={props.doStreaming} games={props.games} /></PrivateRoute>} />
 							<Route path="/gestion-regalos" element={<PrivateRoute><GestionRegalos /></PrivateRoute>} />
 
 							{/* Ruta 404 - redirige al home */}

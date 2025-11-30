@@ -17,7 +17,7 @@ const SearchWithBackend = () => {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!query.trim()) {
       setError('Por favor ingresa un término de búsqueda');
       return;
@@ -29,12 +29,12 @@ const SearchWithBackend = () => {
 
     try {
       const data = await searchStreams(query);
-      
+
       // Convertir datos del backend al formato local
       const convertedResults: Stream[] = data.map((s: any) => ({
         id: parseInt(s.id) || 0,
         user: {
-          id: parseInt(s.streamer.id) || 0,
+          id: s.streamer.id,
           name: s.streamer.name,
           email: s.streamer.email,
           password: "",
@@ -49,13 +49,13 @@ const SearchWithBackend = () => {
           messagessent: [],
           medalsrecieved: [],
           streaminghours: 0,
-          streamerlevel: { 
-            id: 1, 
-            level: "Astronauta Novato", 
-            min_followers: 0, 
-            max_followers: 100, 
-            min_hours: 0, 
-            max_hours: 50 
+          streamerlevel: {
+            id: 1,
+            level: "Astronauta Novato",
+            min_followers: 0,
+            max_followers: 100,
+            min_hours: 0,
+            max_hours: 50
           },
           medalsforviewers: [],
           clips: [],
@@ -66,6 +66,7 @@ const SearchWithBackend = () => {
           discordlink: ""
         },
         game: {
+          id: "0", // Default ID since search might not return it
           name: s.game.name,
           photo: s.game.photo,
           spectators: 0,
@@ -104,8 +105,8 @@ const SearchWithBackend = () => {
                 onChange={(e) => setQuery(e.target.value)}
                 disabled={loading}
               />
-              <button 
-                className="btn btn-primary" 
+              <button
+                className="btn btn-primary"
                 type="submit"
                 disabled={loading}
               >
@@ -147,7 +148,7 @@ const SearchWithBackend = () => {
         <>
           <div className="mb-3">
             <h4 className="fw-bold">
-              {results.length > 0 
+              {results.length > 0
                 ? `${results.length} resultado${results.length !== 1 ? 's' : ''} para "${query}"`
                 : `No se encontraron resultados para "${query}"`
               }

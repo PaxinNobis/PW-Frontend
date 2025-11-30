@@ -13,6 +13,7 @@ import * as notificationService from '../services/notification.service';
 import * as clipService from '../services/clip.service';
 import * as friendService from '../services/friend.service';
 import * as streamerService from '../services/streamer.service';
+import { getCurrentUser } from '../services/auth.service';
 
 /**
  * Hook para gestionar viewers de un stream
@@ -25,7 +26,7 @@ export const useViewers = (streamId: string | null) => {
 
   const loadViewers = useCallback(async () => {
     if (!streamId) return;
-    
+
     try {
       setLoading(true);
       const data = await viewerService.getViewers(streamId);
@@ -40,7 +41,7 @@ export const useViewers = (streamId: string | null) => {
 
   const joinStream = useCallback(async () => {
     if (!streamId) return;
-    
+
     try {
       const data = await viewerService.joinStream(streamId);
       setViewers(data.viewersList);
@@ -52,7 +53,7 @@ export const useViewers = (streamId: string | null) => {
 
   const leaveStream = useCallback(async () => {
     if (!streamId) return;
-    
+
     try {
       const data = await viewerService.leaveStream(streamId);
       setViewerCount(data.currentViewers);
@@ -77,6 +78,9 @@ export const usePoints = () => {
   const [error, setError] = useState<string | null>(null);
 
   const loadPoints = useCallback(async () => {
+    const user = getCurrentUser();
+    if (!user) return;
+
     try {
       setLoading(true);
       const data = await pointsService.getUserPoints();
@@ -89,6 +93,9 @@ export const usePoints = () => {
   }, []);
 
   const earnPoints = useCallback(async (streamerId: string, action: string, amount: number) => {
+    const user = getCurrentUser();
+    if (!user) return;
+
     try {
       const data = await pointsService.earnPoints({
         streamerId,
@@ -119,6 +126,9 @@ export const useMedals = () => {
   const [error, setError] = useState<string | null>(null);
 
   const loadMedals = useCallback(async () => {
+    const user = getCurrentUser();
+    if (!user) return;
+
     try {
       setLoading(true);
       const data = await medalService.getUserMedals();
@@ -147,7 +157,7 @@ export const useProfile = (userId?: string) => {
 
   const loadProfile = useCallback(async () => {
     if (!userId) return;
-    
+
     try {
       setLoading(true);
       console.log(`Cargando perfil del usuario: ${userId}`);
@@ -202,6 +212,9 @@ export const useNotifications = () => {
   const [error, setError] = useState<string | null>(null);
 
   const loadNotifications = useCallback(async (unread?: boolean) => {
+    const user = getCurrentUser();
+    if (!user) return;
+
     try {
       setLoading(true);
       const data = await notificationService.getNotifications(unread);
@@ -215,6 +228,9 @@ export const useNotifications = () => {
   }, []);
 
   const markAsRead = useCallback(async (id: string) => {
+    const user = getCurrentUser();
+    if (!user) return;
+
     try {
       await notificationService.markAsRead(id);
       await loadNotifications();
@@ -224,6 +240,9 @@ export const useNotifications = () => {
   }, [loadNotifications]);
 
   const markAllAsRead = useCallback(async () => {
+    const user = getCurrentUser();
+    if (!user) return;
+
     try {
       await notificationService.markAllAsRead();
       await loadNotifications();
@@ -296,6 +315,9 @@ export const useFriends = () => {
   const [error, setError] = useState<string | null>(null);
 
   const loadFriends = useCallback(async () => {
+    const user = getCurrentUser();
+    if (!user) return;
+
     try {
       setLoading(true);
       const data = await friendService.getFriends();
@@ -308,6 +330,9 @@ export const useFriends = () => {
   }, []);
 
   const loadRequests = useCallback(async () => {
+    const user = getCurrentUser();
+    if (!user) return;
+
     try {
       const data = await friendService.getFriendRequests();
       setRequests(data);
@@ -363,6 +388,9 @@ export const useStreamerLevel = () => {
   const [error, setError] = useState<string | null>(null);
 
   const loadLevel = useCallback(async () => {
+    const user = getCurrentUser();
+    if (!user) return;
+
     try {
       setLoading(true);
       const data = await streamerService.getStreamerLevel();
@@ -375,6 +403,10 @@ export const useStreamerLevel = () => {
   }, []);
 
   const loadAllLevels = useCallback(async () => {
+    const user = getCurrentUser();
+    const token = localStorage.getItem('auth_token');
+    if (!user || !token) return;
+
     try {
       const data = await streamerService.getAllLevels();
       setAllLevels(data.levels);

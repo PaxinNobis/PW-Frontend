@@ -1,10 +1,11 @@
-.PointsBar{
+.PointsBar {
     display: flex;
     align-items: center;
     height: 5%;
     border: 1px solid black;
 }
-.support-button{
+
+.support-button {
     height: 30px;
     width: 30px;
     border-radius: 40%;
@@ -12,8 +13,12 @@
     transition: background-color 0.6s ease, box-shadow 0.6s ease;
 }
 
-.support-button:hover{
+.support-button:hover {
     background-color: rgba(var(--nebula-violet), 0.3);
     box-shadow: 0 0 20px rgba(160, 32, 240, 0.4),
-				0 0 35px rgba(255, 110, 199, 0.25);
+        0 0 35px rgba(255, 110, 199, 0.25);
+}
+
+.gifts-dropdown-menu {
+    min-width: 250px;
 }

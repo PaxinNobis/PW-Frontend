@@ -17,6 +17,7 @@ export async function handleApiResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     let errorMessage = `Error ${response.status}: ${response.statusText}`;
     let errorData: unknown;
+    const responseClone = response.clone();
 
     try {
       errorData = await response.json();
@@ -24,9 +25,20 @@ export async function handleApiResponse<T>(response: Response): Promise<T> {
         errorMessage = (errorData as { message: string }).message;
       }
     } catch {
-      // Si no se puede parsear el JSON, usar el mensaje por defecto
+      // Si no se puede parsear el JSON, intentar leer como texto
+      try {
+        const errorText = await responseClone.text();
+        console.error(`API Error ${response.status} Body (Text):`, errorText);
+        // Si es HTML, probablemente sea una página de error del servidor
+        if (errorText.includes('<!DOCTYPE html>')) {
+          errorMessage = `Error ${response.status}: El servidor devolvió HTML en lugar de JSON. Revisa la consola.`;
+        }
+      } catch (e) {
+        console.error("Error reading error response body:", e);
+      }
     }
 
+    console.error(`API Error ${response.status} on ${response.url}:`, errorData || errorMessage);
     throw new ApiError(errorMessage, response.status, errorData);
   }
 

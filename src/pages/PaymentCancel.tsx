@@ -1,13 +1,14 @@
 import { Link } from 'react-router-dom';
+import './PaymentStatus.css';
 
 const PaymentCancel = () => {
   return (
     <div className="container text-center my-5">
-      <i className="bi bi-x-circle text-danger" style={{ fontSize: '5rem' }}></i>
+      <i className="bi bi-x-circle text-danger status-icon-large"></i>
       <h1 className="mt-4">Pago Cancelado</h1>
       <p className="lead">No se realizó ningún cargo a tu cuenta</p>
-      
-      <div className="alert alert-info mx-auto mt-4" style={{ maxWidth: '600px' }}>
+
+      <div className="alert alert-info mx-auto mt-4 alert-max-width-600">
         <i className="bi bi-info-circle me-2"></i>
         El proceso de pago fue cancelado. Puedes intentarlo nuevamente cuando lo desees.
       </div>

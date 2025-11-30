@@ -178,7 +178,7 @@ const Streaming = (props: StreamingProps) => {
                 {localStream.user.online ? (
                     <ChatSection stream={localStream} doChatting={props.doChatting} GetUser={props.GetUser}></ChatSection>
                 ) : (
-                    <div className="d-flex h-100 flex-column justify-content-center align-items-center text-center p-4" style={{ backgroundColor: '#18181b', color: '#efeff1' }}>
+                    <div className="d-flex h-100 flex-column justify-content-center align-items-center text-center p-4 chat-offline-container">
                         <h5>Chat Offline</h5>
                         <p className="text-muted">El chat está deshabilitado porque el stream ha finalizado.</p>
                     </div>

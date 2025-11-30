@@ -7,22 +7,30 @@ import Analiticas from './Analiticas';
 import Configuracion from './Configuracion';
 import ConfiguracionNiveles from './ConfiguracionNiveles';
 import GestionRegalos from './GestionRegalos';
-import StreamConfig from '../components/Dashboard/StreamConfig';
 import ChatSection from '../components/StreamingComponents/ChatSection';
+import StartStreamModal from '../components/Dashboard/StartStreamModal';
+import StreamerLevelProgress from '../components/Dashboard/StreamerLevelProgress';
 import { getStreamDetails } from '../services/data.service';
-import { startStream, stopStream } from '../services/streamer.service';
+import { stopStream } from '../services/streamer.service';
 import { getCurrentUser } from '../services/auth.service';
-import type { User, Stream, Message } from '../GlobalObjects/Objects_DataTypes';
+import { useStreamerLevel } from '../hooks/useNewFeatures';
+import type { User, Stream, Message, Game } from '../GlobalObjects/Objects_DataTypes';
+import './PanelControl.css';
 
 interface PanelControlProps {
   GetUser: () => User | null;
   doChatting: (message: Message, stream: Stream) => void;
+  doStreaming: (user: string, title: string, game: string, link: string) => Promise<void>;
+  games: Game[];
 }
 
 const PanelControl = (props: PanelControlProps) => {
   const [seccionActiva, setSeccionActiva] = useState('Stream');
   const [userStream, setUserStream] = useState<Stream | null>(null);
-  const [loadingStream, setLoadingStream] = useState(true);
+  const [showStartModal, setShowStartModal] = useState(false);
+
+  // Hook para el nivel del streamer
+  const { levelData, loading: levelLoading } = useStreamerLevel();
 
   useEffect(() => {
     const fetchStream = async () => {
@@ -75,22 +83,16 @@ const PanelControl = (props: PanelControlProps) => {
               messagelist: []
             };
             setUserStream(defaultStream as unknown as Stream);
-            setLoadingStream(false);
+
             return;
           }
 
           // Adaptar el objeto stream de la API al tipo Stream que espera ChatSection
-          // La API devuelve 'streamer', pero ChatSection espera 'user'
-          // Si no hay streamer, intentar usar 'user' si ya existe, o un objeto vacío para evitar crash
           const streamerData = (actualStreamData as any).streamer || (actualStreamData as any).user || {};
 
-          // Asegurar que tenga nombre e ID (usando datos del usuario actual si faltan)
+          // Asegurar que tenga nombre e ID
           if (!streamerData.name && user.name) streamerData.name = user.name;
           if (!streamerData.id && user.id) streamerData.id = user.id;
-
-          if (!streamerData.id) {
-            console.warn("Streamer data missing ID:", streamerData);
-          }
 
           const adaptedStream = {
             ...actualStreamData,
@@ -100,8 +102,8 @@ const PanelControl = (props: PanelControlProps) => {
 
           setUserStream(adaptedStream as unknown as Stream);
         } catch (error) {
-          console.error("Error fetching user stream:", error);
-          // Si hay error (404 = no stream), crear un stream por defecto
+          // 404 es normal si el usuario no tiene stream aún
+          console.log("No stream found for user, using default offline stream");
           const defaultStream = {
             id: `temp-${user.id}`,
             title: "",
@@ -141,22 +143,12 @@ const PanelControl = (props: PanelControlProps) => {
           setUserStream(defaultStream as unknown as Stream);
         }
       }
-      setLoadingStream(false);
+
     };
     fetchStream();
   }, []);
 
   // Auto-stop stream when leaving the page (component unmount)
-  useEffect(() => {
-    return () => {
-      // Use a ref or direct check if possible, but since we can't access state in cleanup easily without ref,
-      // we'll rely on the fact that if they leave, we should probably ensure it's stopped if they were live.
-      // However, accessing 'userStream' inside cleanup requires it to be in dependency array, which triggers re-runs.
-      // A better approach for "on unmount only" with latest state is using a ref.
-    };
-  }, []);
-
-  // Keep a ref of the current stream state to access it in the cleanup function
   const userStreamRef = useRef<Stream | null>(null);
   useEffect(() => {
     userStreamRef.current = userStream;
@@ -175,45 +167,57 @@ const PanelControl = (props: PanelControlProps) => {
     if (!userStream) return;
 
     const isLive = (userStream as any).isLive;
-    try {
-      let response;
-      console.log("Current Stream ID before toggle:", userStream.id);
 
-      if (isLive) {
-        response = await stopStream();
-      } else {
-        response = await startStream();
+    if (isLive) {
+      // Si está en vivo, detener stream
+      try {
+        const response = await stopStream();
+        console.log("Stop Stream Response:", response);
+
+        // Actualizar estado local a offline
+        setUserStream({ ...userStream, isLive: false } as any);
+      } catch (error) {
+        console.error("Error stopping stream:", error);
+        alert("Error al detener el stream");
       }
+    } else {
+      // Si está offline, abrir modal para iniciar
+      setShowStartModal(true);
+    }
+  };
 
-      console.log("Toggle Response:", response);
+  // Callback para cuando se inicia el stream desde el modal
+  const handleStreamStarted = async (user: string, title: string, game: string, link: string) => {
+    await props.doStreaming(user, title, game, link);
 
-      if (response && response.success && response.stream) {
-        // Unwrap and adapt the new stream data similar to fetchStream
-        const actualStreamData = (response.stream as any).stream || response.stream;
-        console.log("New Stream Data from Backend:", actualStreamData);
-        console.log("New Stream ID:", actualStreamData.id);
+    // Actualizar estado local a online
+    // Nota: Idealmente deberíamos obtener el stream actualizado del backend,
+    // pero por ahora actualizamos el estado local para reflejar el cambio inmediato
+    if (userStream) {
+      setUserStream({ ...userStream, isLive: true } as any);
+    }
 
-        const streamerData = (actualStreamData as any).streamer || (actualStreamData as any).user || {};
+    // Recargar detalles del stream para asegurar consistencia
+    const currentUser = getCurrentUser();
+    if (currentUser?.name) {
+      try {
+        const stream = await getStreamDetails(currentUser.name);
+        const actualStreamData = (stream as any).stream || stream;
+        if (actualStreamData && actualStreamData.id) {
+          const streamerData = (actualStreamData as any).streamer || (actualStreamData as any).user || {};
+          if (!streamerData.name && currentUser.name) streamerData.name = currentUser.name;
+          if (!streamerData.id && currentUser.id) streamerData.id = currentUser.id;
 
-        // Preserve user info if missing in response
-        if (!streamerData.name && userStream.user.name) streamerData.name = userStream.user.name;
-        if (!streamerData.id && userStream.user.id) streamerData.id = userStream.user.id;
-
-        const adaptedStream = {
-          ...actualStreamData,
-          user: streamerData,
-          messagelist: []
-        };
-
-        setUserStream(adaptedStream as unknown as Stream);
-      } else {
-        // Fallback if response structure is unexpected
-        setUserStream({ ...userStream, isLive: !isLive } as any);
+          const adaptedStream = {
+            ...actualStreamData,
+            user: streamerData,
+            messagelist: []
+          };
+          setUserStream(adaptedStream as unknown as Stream);
+        }
+      } catch (e) {
+        console.log("Error refreshing stream details after start:", e);
       }
-
-    } catch (error) {
-      console.error("Error toggling stream:", error);
-      alert("Error al cambiar el estado del stream");
     }
   };
 
@@ -228,31 +232,62 @@ const PanelControl = (props: PanelControlProps) => {
   if (seccionActiva === 'Stream') {
     contenidoCentral = (
       <div className="row h-100">
-        <div className="col-12 col-lg-8">
-          <StreamConfig />
-        </div>
-        <div className="col-12 col-lg-4 h-100">
-          {userStream && (userStream as any).isLive ? (
-            <div className="h-100 border rounded overflow-hidden" style={{ minHeight: '500px' }}>
-              <ChatSection
-                stream={userStream}
-                GetUser={props.GetUser}
-                doChatting={props.doChatting}
-              />
+        {userStream ? (
+          <div className="d-flex w-100 h-100 panel-stream-layout">
+            <div className="flex-grow-1 d-flex flex-column" style={{ minWidth: 0, overflow: 'hidden' }}>
+              <div className="d-flex align-items-start justify-content-center w-100">
+                <div className="ratio ratio-16x9 border rounded overflow-hidden bg-black position-relative w-100">
+                  {(userStream as any).isLive && userStream.iframeUrl ? (
+                    <iframe
+                      src={userStream.iframeUrl}
+                      title="Stream Video"
+                      className="w-100 h-100"
+                      allowFullScreen
+                    ></iframe>
+                  ) : (
+                    <div className="d-flex flex-column align-items-center justify-content-center h-100 text-white offline-placeholder">
+                      <i className="bi bi-broadcast-pin fs-1 mb-3 offline-icon"></i>
+                      <h3 className="fw-bold">OFFLINE</h3>
+                      <p className="text-muted">El stream está desconectado</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-3 w-100">
+                <StreamerLevelProgress levelData={levelData} loading={levelLoading} />
+              </div>
+
+              <div className="col-12 mb-3">
+                {userStream && (
+                  <PanelStream
+                    stream={{
+                      id: typeof userStream.id === 'number' ? userStream.id : parseInt(userStream.id) || 0,
+                      title: userStream.title || "Sin título",
+                      viewers: userStream.viewersnumber || 0,
+                      status: (userStream as any).isLive ? 'live' : 'offline'
+                    }}
+                  />
+                )}
+              </div>
             </div>
-          ) : (
+            <div className="panel-chat-column">
+              <div className="h-100 border rounded overflow-hidden chat-container-height">
+                <ChatSection
+                  stream={userStream}
+                  GetUser={props.GetUser}
+                  doChatting={props.doChatting}
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="col-12">
             <div className="alert alert-secondary text-center">
-              {userStream ? (
-                <>
-                  <h5>Chat en Espera</h5>
-                  <p>El chat aparecerá aquí cuando inicies tu transmisión.</p>
-                </>
-              ) : (
-                "No se pudo cargar el chat. Asegúrate de tener un canal creado."
-              )}
+              No se pudo cargar la información del stream.
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -264,19 +299,29 @@ const PanelControl = (props: PanelControlProps) => {
   if (seccionActiva === 'Niveles') contenidoCentral = <ConfiguracionNiveles />;
 
   return (
-    <div className="container-fluid mt-4 h-100">
-      <PanelHeader
-        isLive={userStream ? (userStream as any).isLive : false}
-        onToggleStream={handleToggleStream}
+    <div className="container-fluid d-flex flex-column panel-main-container">
+      <div className="flex-shrink-0 pt-4">
+        <PanelHeader
+          isLive={userStream ? (userStream as any).isLive : false}
+          onToggleStream={handleToggleStream}
+        />
+      </div>
+
+      <StartStreamModal
+        show={showStartModal}
+        onClose={() => setShowStartModal(false)}
+        doStreaming={handleStreamStarted}
+        user={props.GetUser()}
+        games={props.games}
       />
 
-      <div className="row mt-3 h-100">
+      <div className="row mt-3 flex-grow-1 panel-content-row">
         <PanelOptions
           opciones={["Stream", "Videos", "Estadísticas", "Regalos", "Niveles"]}
           onSeleccionar={(o) => setSeccionActiva(o)}
         />
 
-        <div className="col-10">
+        <div className="col-10 h-100">
           {contenidoCentral}
         </div>
       </div>

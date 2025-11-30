@@ -28,3 +28,13 @@ export interface AuthResponse {
   token: string;
   user: User;
 }
+
+export interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  login: (credentials: LoginCredentials) => Promise<void>;
+  signup: (data: SignupData) => Promise<void>;
+  logout: () => void;
+  updateUser: (user: User) => void;
+  refreshUser?: () => Promise<void>;
+}

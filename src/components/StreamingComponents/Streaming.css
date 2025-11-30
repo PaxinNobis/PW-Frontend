@@ -1,11 +1,18 @@
-.Main-Seccion{
+.Main-Seccion {
     height: 100%;
 }
-#Middle-Page{
+
+#Middle-Page {
     height: 100%;
     width: 77%;
 }
-#Right-Page{
+
+#Right-Page {
     height: 100%;
     width: 23%;
+}
+
+.chat-offline-container {
+    background-color: #18181b;
+    color: #efeff1;
 }

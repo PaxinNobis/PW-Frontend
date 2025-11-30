@@ -3,22 +3,84 @@ import { useState } from "react";
 import type { Pack } from "../../GlobalObjects/Objects_DataTypes";
 import type { User } from "../../GlobalObjects/Objects_DataTypes";
 import "./PaymentGateway.css"
+import StripeEmbeddedCheckout from "./StripeEmbeddedCheckout";
+import { createCheckoutSession } from "../../services/payment.service";
 
 interface PaymentGatewayProps {
 	doPayment: (user: User | null, packId: string) => Promise<void>
 	GetUser: () => User | null
 }
-const PaymentGateway = (props: PaymentGatewayProps) => {
+const PaymentGateway = (_props: PaymentGatewayProps) => {
 	const location = useLocation();
 	const { pack } = (location.state || {}) as { pack?: Pack };
 	const [value, setValue] = useState<number>(0);
 	const [price, setPrice] = useState<number>(0);
+	const [clientSecret, setClientSecret] = useState<string | null>(null);
+	const [loading, setLoading] = useState(false);
+
 	const onStarsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const numericValue = parseInt(e.target.value) || 0;
 		const limitedValue = Math.min(numericValue, 9999);
 		setValue(limitedValue);
 		setPrice(limitedValue * 5 / 100)
 	}
+
+	const handleInitiatePayment = async () => {
+		if ((!pack || !pack.id) && value <= 0) {
+			alert("Por favor selecciona un paquete de monedas o ingresa una cantidad válida");
+			return;
+		}
+
+		try {
+			setLoading(true);
+
+			let paymentData: any = {};
+			if (pack && pack.id) {
+				console.log('PaymentGateway: Creating session for pack:', pack.id);
+				paymentData = { coinPackId: pack.id };
+			} else {
+				console.log('PaymentGateway: Creating session for custom amount:', value);
+				// El backend calcula el precio basado en la cantidad (amount)
+				paymentData = {
+					amount: value
+				};
+			}
+
+			const response = await createCheckoutSession(paymentData);
+
+			if (response.clientSecret) {
+				console.log('PaymentGateway: Client secret received');
+				setClientSecret(response.clientSecret);
+			} else if (response.url) {
+				// Fallback to hosted checkout if backend returns URL
+				window.location.href = response.url;
+			} else {
+				console.error('PaymentGateway: No clientSecret or url in response');
+				alert('Error al iniciar el pago: Respuesta inválida del servidor');
+			}
+		} catch (error) {
+			console.error('PaymentGateway: Error creating session:', error);
+			alert('Error al iniciar el pago. Revisa la consola para más detalles.');
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	if (clientSecret) {
+		return (
+			<div className="container mt-4">
+				<h2 className="mb-4">Finalizar Compra</h2>
+				<StripeEmbeddedCheckout clientSecret={clientSecret} />
+				<button
+					className="btn btn-secondary mt-3"
+					onClick={() => setClientSecret(null)}
+				>
+					Cancelar
+				</button>
+			</div>
+		);
+	}
+
 	return (
 		<div className="alert alert-info mt-4 text-card border-0">
 			<h1>Completar compra</h1>
@@ -43,52 +105,18 @@ const PaymentGateway = (props: PaymentGatewayProps) => {
 			<hr className="w-30 mx-auto border-2" />
 
 			<div className="border  px-3 py-2">
-
-				<div className="row">
-
-					<div className="text-start mt-3 col-6">
-						<h5 className="fw-bold">Pagar con Tarjeta</h5>
-						<h6>Información de facturación</h6>
-
-
-					</div>
-					<div className="col-6 mt-3 text-end">
-						<img src="https://content.app-sources.com/s/80905201177183951/uploads/Images/credit-card-logos-2213231.png?format=webp" className="img_pago mb-3" alt="tarjetas" />
-					</div>
+				<div className="text-center p-4">
+					<p>Haz clic en el botón de abajo para pagar de forma segura con Stripe.</p>
 				</div>
-
-				<form className="row g-3 text-start mb-3">
-					<div className="col-md-6">
-						<label className="form-label">Nombre</label>
-						<input type="text" className="form-control" id="inputNombre" />
-					</div>
-					<div className="col-md-6">
-						<label className="form-label">Apellido</label>
-						<input type="text" className="form-control" id="inputApellido" />
-					</div>
-					<div className="col-12">
-						<label className="form-label">Numero de tarjeta</label>
-						<input type="text" className="form-control" id="inputTarjeta" placeholder="XXXX-XXXX XXXX-XXXX" />
-					</div>
-					<div className="col-12">
-						<label className="form-label">CVV</label>
-						<input type="text" className="form-control" id="inputCVV" placeholder="123" />
-					</div>
-				</form>
 			</div>
 			<div className="modal-footer mt-3">
 				<button
 					type="button"
 					className="btn btn-primary page-button"
-					onClick={async () => {
-						if (pack && pack.id) {
-							await props.doPayment(props.GetUser(), pack.id.toString());
-						} else {
-							alert("Por favor selecciona un paquete de monedas");
-						}
-					}}
+					onClick={handleInitiatePayment}
+					disabled={loading}
 				>
-					Realizar Pago con Stripe
+					{loading ? 'Cargando...' : 'Pagar con Stripe'}
 				</button>
 			</div>
 		</div>

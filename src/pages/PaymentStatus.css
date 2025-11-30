@@ -1,0 +1,13 @@
+/* Shared styles for PaymentSuccess and PaymentCancel pages */
+
+.status-icon-large {
+    font-size: 5rem;
+}
+
+.card-max-width-400 {
+    max-width: 400px;
+}
+
+.alert-max-width-600 {
+    max-width: 600px;
+}

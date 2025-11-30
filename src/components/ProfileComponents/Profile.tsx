@@ -121,7 +121,7 @@ const Profile = (props: ProfileProps) => {
                 <div className="card position-relative  w-100 h-100">
                     <div className="card-body">
                         <div className="card-body p-4 d-flex flex-column flex-lg-row pb-5 border-bottom align-items-center align-items-lg-start">
-                            <img className="Profile_Img mb-4 mb-lg-0 me-lg-5" src={profiletoshow.pfp} alt="Img" />
+                            <img className="Profile_Img mb-4 mb-lg-0 me-lg-5" src={profiletoshow.pfp || "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-70x70.png"} alt="Img" />
                             <div className='d-flex bd-highlight flex-column flex-grow-1 w-100'>
                                 <div className="pe-lg-5 text-center text-lg-start">
                                     <div className="mb-3">

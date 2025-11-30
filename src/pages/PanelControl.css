@@ -1,0 +1,32 @@
+.chat-container-height {
+    height: 100%;
+    /* Fill the parent container */
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-main-container {
+    height: 100vh;
+    padding-bottom: 20px;
+}
+
+.panel-content-row {
+    min-height: 0;
+}
+
+.panel-stream-layout {
+    gap: 1rem;
+}
+
+.panel-chat-column {
+    width: 350px;
+    flex-shrink: 0;
+}
+
+.offline-placeholder {
+    background-color: black;
+}
+
+.offline-icon {
+    opacity: 0.5;
+}

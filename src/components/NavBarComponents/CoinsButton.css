@@ -1,13 +1,27 @@
-.buybutton{
+.buybutton {
     font-size: 12px;
     width: 4rem;
     height: 2rem;
 }
+
 .dropdown-menu {
-    white-space: nowrap; /* evita que se parta en dos líneas */
+    white-space: nowrap;
+    /* evita que se parta en dos líneas */
 }
-h6.Discount{
+
+h6.Discount {
     font-size: xx-small;
-    margin-top: 5px; /*Es un interlineado*/
-    margin-bottom: 5px; /*Es un interlineado*/
+    margin-top: 5px;
+    /*Es un interlineado*/
+    margin-bottom: 5px;
+    /*Es un interlineado*/
+}
+
+.coin-icon-large {
+    object-fit: contain;
+}
+
+.coin-icon-small {
+    object-fit: contain;
+    vertical-align: middle;
 }

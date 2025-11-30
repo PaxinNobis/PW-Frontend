@@ -1,10 +1,10 @@
 // context/AuthContext.tsx
 // Contexto global para gestionar el estado de autenticación en toda la app
 
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import type { AuthContextType, User, LoginCredentials, SignupData } from '../types/auth';
-import { loginUser, signupUser, logoutUser, getCurrentUser } from '../services/auth.service';
+import { loginUser, signupUser, logoutUser, getCurrentUser, fetchCurrentUser } from '../services/auth.service';
 
 /**
  * Contexto de autenticación
@@ -38,7 +38,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   /**
    * Función para iniciar sesión
    */
-  const login = async (credentials: LoginCredentials): Promise<void> => {
+  /**
+   * Función para iniciar sesión
+   */
+  const login = useCallback(async (credentials: LoginCredentials): Promise<void> => {
     try {
       const loggedUser = await loginUser(credentials);
       setUser(loggedUser);
@@ -46,45 +49,55 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // Re-lanzar el error para que el componente lo maneje
       throw error;
     }
-  };
+  }, []);
 
   /**
    * Función para registrarse
    */
-  const signup = async (data: SignupData): Promise<void> => {
+  const signup = useCallback(async (data: SignupData): Promise<void> => {
     try {
       const newUser = await signupUser(data);
       setUser(newUser);
     } catch (error) {
       throw error;
     }
-  };
+  }, []);
 
   /**
    * Función para cerrar sesión
    */
-  const logout = (): void => {
+  const logout = useCallback((): void => {
     logoutUser();
     setUser(null);
-  };
+  }, []);
 
   /**
    * Función para actualizar el usuario actual (por ejemplo, al cambiar de rol)
    */
-  const updateUser = (updatedUser: User): void => {
+  const updateUser = useCallback((updatedUser: User): void => {
     setUser(updatedUser);
     // Guardar en localStorage
     localStorage.setItem('streaming_user', JSON.stringify(updatedUser));
-  };
+  }, []);
 
-  const value: AuthContextType = {
+  const refreshUser = useCallback(async () => {
+    try {
+      const updatedUser = await fetchCurrentUser();
+      setUser(updatedUser);
+    } catch (error) {
+      console.error("Error refreshing user:", error);
+    }
+  }, []);
+
+  const value = useMemo<AuthContextType>(() => ({
     user,
     loading,
     login,
     signup,
     logout,
     updateUser,
-  };
+    refreshUser
+  }), [user, loading, login, signup, logout, updateUser, refreshUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
@@ -95,10 +108,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
  */
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  
+
   if (context === undefined) {
     throw new Error('useAuth debe ser usado dentro de un AuthProvider');
   }
-  
+
   return context;
 };

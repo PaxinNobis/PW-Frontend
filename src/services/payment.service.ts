@@ -26,7 +26,13 @@ export const createCheckoutSession = async (
   data: CheckoutSessionRequest
 ): Promise<CheckoutSessionResponse> => {
   const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PAYMENT_CHECKOUT}`;
+  console.log('Creating checkout session with data:', data);
   return apiPost<CheckoutSessionResponse>(url, data, getAuthHeaders());
+};
+
+export const verifyPaymentSession = async (sessionId: string): Promise<any> => {
+  const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PAYMENT_VERIFY_SESSION}`;
+  return apiPost(url, { sessionId }, getAuthHeaders());
 };
 
 /**

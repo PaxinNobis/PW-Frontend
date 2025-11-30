@@ -7,8 +7,6 @@ import type { Game } from "./GlobalObjects/Objects_DataTypes";
 import type { User } from "./GlobalObjects/Objects_DataTypes";
 import type { Pack } from "./GlobalObjects/Objects_DataTypes";
 import type { Message } from "./GlobalObjects/Objects_DataTypes";
-import type { Level } from "./GlobalObjects/Objects_DataTypes";
-import type { Medal } from "./GlobalObjects/Objects_DataTypes";
 
 // Importar servicios del backend
 import { getAllStreams, getAllTags, getAllGames } from "./services/data.service";
@@ -17,13 +15,8 @@ import { getCoinPacks, createCheckoutSession } from "./services/payment.service"
 import { loginUser as apiLoginUser, signupUser as apiSignupUser, logoutUser as apiLogoutUser } from "./services/auth.service";
 
 // Importar nuevos servicios
-import * as viewerService from "./services/viewer.service";
-import * as pointsService from "./services/points.service";
-import * as medalService from "./services/medal.service";
+// Importar nuevos servicios
 import * as profileService from "./services/profile.service";
-import * as notificationService from "./services/notification.service";
-import * as clipService from "./services/clip.service";
-import * as friendService from "./services/friend.service";
 import * as streamerService from "./services/streamer.service";
 
 const App = () => {
@@ -32,8 +25,7 @@ const App = () => {
     const [tags, setTags] = useState<GameTag[]>([]);
     const [games, setGames] = useState<Game[]>([]);
     const [following, setFollowing] = useState<User[]>([]);
-    const [levels, setLevels] = useState<Level[]>([]);
-    const [medals, setMedals] = useState<Medal[]>([]);
+    // Removed unused levels and medals state
 
     const [packs, setPacks] = useState<Pack[]>([]);
     const [users, setUsers] = useState<User[]>([]);
@@ -115,15 +107,7 @@ const App = () => {
             }
         }
     };
-    const ReloadUser = () => {
-        for (const reloaded of users) {
-            if (reloaded.id === user?.id) {
-                setUser(reloaded);
-                localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(reloaded));
-                return 1;
-            }
-        }
-    };
+    // Removed unused ReloadUser function
     const PayingFunction = async (user: User | null, packId: string) => {
         if (!user) {
             console.error("Usuario no autenticado");
@@ -132,6 +116,8 @@ const App = () => {
 
         try {
             // Crear sesión de pago con Stripe
+            console.log("PayingFunction: Sending packId:", packId, "Type:", typeof packId);
+
             const session = await createCheckoutSession({ coinPackId: packId });
             console.log("Sesión de pago creada, redirigiendo a Stripe...");
 
@@ -254,12 +240,83 @@ const App = () => {
                     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
                     return 1;
                 }
-            }
-            throw new Error("Usuario o contraseña incorrectos");
-        }
-    }
+            };
 
-    const LogOutFunction = () => {
+            throw new Error("Usuario no encontrado o contraseña incorrecta");
+        }
+    };
+
+    const doStreaming = async (_user: string, title: string, game: string, link: string) => {
+        try {
+            // Buscar el ID del juego basado en el nombre (si game es el nombre)
+            // O asumir que game es el ID si viene del select
+            let gameId = game;
+            const selectedGame = games.find(g => g.name === game || g.id === game);
+            if (selectedGame) {
+                gameId = selectedGame.id;
+            }
+
+            await streamerService.updateStreamSettings({
+                title,
+                gameId,
+                iframeUrl: link,
+                isLive: true
+            });
+
+            // Actualizar lista de streams
+            const response = await getAllStreams();
+            const apiStreams = Array.isArray(response) ? response : (response as any).streams || [];
+
+            if (!Array.isArray(apiStreams)) {
+                console.error("Formato de respuesta de streams inesperado:", response);
+                return;
+            }
+
+            // Convertir streams de API a formato local
+            const convertedStreams: Stream[] = apiStreams.map((s: any) => ({
+                id: typeof s.id === 'number' ? s.id : parseInt(s.id) || 0,
+                user: {
+                    id: s.user?.id || s.userId || "",
+                    name: s.user?.name || "Unknown",
+                    email: "",
+                    password: "",
+                    coins: 0,
+                    pfp: s.user?.pfp || "",
+                    online: true,
+                    bio: "",
+                    followed: [],
+                    followers: [],
+                    friends: [],
+                    pointsrecieved: [],
+                    messagessent: [],
+                    medalsrecieved: [],
+                    streaminghours: 0,
+                    streamerlevel: { id: 1, level: "Novato", min_followers: 0, max_followers: 100, min_hours: 0, max_hours: 50 },
+                    medalsforviewers: [],
+                    clips: [],
+                    xlink: "",
+                    youtubelink: "",
+                    instagramlink: "",
+                    tiktoklink: "",
+                    discordlink: ""
+                },
+                game: s.game || { id: "0", name: "Unknown", photo: "", spectators: 0, followers: 0, tags: [] },
+                thumbnail: s.thumbnailUrl || "",
+                title: s.title || "",
+                viewersnumber: s.viewers || 0,
+                viewersid: [],
+                messagelist: []
+            }));
+
+            setStreams(convertedStreams);
+
+        } catch (error) {
+            console.error("Error al iniciar stream:", error);
+            throw error;
+        }
+    };
+
+    const LogOutFunction = async () => {
         apiLogoutUser(); // Limpia el token del backend
         localStorage.removeItem(USER_STORAGE_KEY);
         setUser(null);
@@ -563,12 +620,7 @@ const App = () => {
             const response6 = await fetch("/data/users.json");
             const data6 = await response6.json();
             setUsers(data6);
-            const response7 = await fetch("/data/levels.json");
-            const data7 = await response7.json();
-            setLevels(data7);
-            const response8 = await fetch("/data/medals.json");
-            const data8 = await response8.json();
-            setMedals(data8);
+            // Removed unused levels and medals loading
 
         } catch (error) {
             console.error("Error al cargar datos:", error);
@@ -640,7 +692,7 @@ const App = () => {
         };
     }, []);
 
-    return <AppRouter streams={streams} tags={tags} games={games} following={following} packs={packs} users={users} user={user} doPayment={PayingFunction} doFollowing={FollowFunction} doChatting={ChatFunction} doLogIn={LogInFunction} doSignIn={SignInFunction} doLogOut={LogOutFunction} GetUser={GetUser} />;
+    return <AppRouter streams={streams} tags={tags} games={games} following={following} packs={packs} users={users} user={user} doPayment={PayingFunction} doFollowing={FollowFunction} doChatting={ChatFunction} doLogIn={LogInFunction} doSignIn={SignInFunction} doLogOut={LogOutFunction} GetUser={GetUser} doStreaming={doStreaming} />;
 };
 
 export default App;
