@@ -1,7 +1,7 @@
 // Configuración centralizada de la API
 
 export const API_CONFIG = {
-  BASE_URL: 'http://localhost:8080',
+  BASE_URL: 'https://astrotv.onrender.com',
   ENDPOINTS: {
     // Auth
     AUTH_REGISTER: '/api/auth/register',
