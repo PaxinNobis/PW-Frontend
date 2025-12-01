@@ -6,12 +6,9 @@ import type { Stream } from "../../GlobalObjects/Objects_DataTypes"
 
 interface StreamBoxProps {
     stream: Stream
+    doViewersDivision : (dividendo : number, divisor : number, decimas : number) => string
 }
 const StreamBox = (props: StreamBoxProps) => {
-    const DivisiónAproximada = (dividendo: number, divisor: number, decimas: number) => {
-        const cociente = dividendo / divisor;
-        return (cociente.toFixed(decimas))
-    }
     return (
         <Link to={`/streaming/${props.stream.user.name}`}>
             <div className="row">
@@ -26,7 +23,7 @@ const StreamBox = (props: StreamBoxProps) => {
                 </div>
                 <div className="col-3" id="OnStreamBox">
                     <i className={props.stream.user.online ? "bi bi-circle-fill red icondot" : ""}></i>
-                    <h6 className="TextBox">{props.stream.user.online ? (props.stream.viewersnumber >= 1000000 ? DivisiónAproximada(props.stream.viewersnumber, 1000000, 1) + " M " : props.stream.viewersnumber >= 1000 ? DivisiónAproximada(props.stream.viewersnumber, 1000, 1) + " k" : props.stream.viewersnumber) : "Desconectado"}</h6>
+                    <h6 className="TextBox">{props.stream.user.online? (props.stream.viewersnumber >= 1000000? props.doViewersDivision(props.stream.viewersnumber,1000000,1) + " M ": props.stream.viewersnumber >= 1000? props.doViewersDivision(props.stream.viewersnumber,1000,1) + " k":props.stream.viewersnumber): "Desconectado"}</h6>
                 </div>
             </div>
         </Link>

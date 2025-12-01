@@ -31,3 +31,32 @@
 	50% { background-position: 100% 50%; }
 	100% { background-position: 0% 50%; }
 }
+
+
+.clickable_text {
+	color: rgb(var(--blue-dwarf));
+	transition: color 1s linear;
+    font-family: sans-serif;
+    font-weight: bold;
+}
+
+.clickable_text:hover {
+  	animation: hoverColorFlow 1s forwards;
+	cursor : pointer;
+}
+
+.clickable_text:not(:hover) {
+  	animation: hoverColorReverse 1s forwards;
+}
+
+@keyframes hoverColorFlow {
+	0%   { color: rgb(var(--luminous-teal)); }
+	50%  { color: rgb(var(--red-giant-orange)); }
+	100% { color: rgb(var(--blue-dwarf)); }
+}
+
+@keyframes hoverColorReverse {
+	0%   { color: rgb(var(--blue-dwarf)); }
+	50%  { color: rgb(var(--red-giant-orange)); }
+	100% { color: rgb(var(--luminous-teal)); }
+}

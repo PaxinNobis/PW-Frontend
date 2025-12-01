@@ -1,0 +1,26 @@
+/* Profile.css */
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    font-size: 2rem;
+}
+.Game_Img{
+    width: 144px;
+    height: 192px;
+    border-radius: 5%;
+}
+.profile-points-icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+.profile-progress-bar {
+    height: 20px;
+}
+
+.profile-progress-value {
+    width: 65%;
+}

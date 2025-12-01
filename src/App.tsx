@@ -20,7 +20,10 @@ import * as profileService from "./services/profile.service";
 import * as streamerService from "./services/streamer.service";
 
 const App = () => {
-    console.log("🚀 App Version: 1.0.1 - Deployment Fixes Applied (Trailing Slash + API URL)");
+    const DivisiónAproximada = (dividendo : number, divisor : number, decimas : number) => {
+    const cociente = dividendo/divisor;
+    return(cociente.toFixed(decimas))
+    }
     const [user, setUser] = useState<User | null>(null);
     const [streams, setStreams] = useState<Stream[]>([]);
     const [tags, setTags] = useState<GameTag[]>([]);
@@ -108,7 +111,15 @@ const App = () => {
             }
         }
     };
-    // Función ReloadUser no utilizada eliminada
+    const ReloadViewers = (viewers : number, game : Game) => {
+    for (let i = 0; i < games.length; i++) {
+        if (games[i].id === game.id) {
+            const copygames = [...games];
+            copygames[i].spectators = viewers
+            setGames(copygames)
+        }
+    }
+    };
     const PayingFunction = async (user: User | null, packId: string) => {
         if (!user) {
             console.error("Usuario no autenticado");
@@ -135,8 +146,7 @@ const App = () => {
             console.error("Error al crear sesión de pago:", error);
             throw error;
         }
-    }
-    //TODO: Si alguien está registrado no aparezca botón en about us
+    }   
     const LogInFunction = async (email: string, pass: string) => {
         if (email == "" || pass == "") {
             throw new Error("Por favor, rellena todos los campos");
@@ -705,7 +715,7 @@ const App = () => {
         };
     }, []);
 
-    return <AppRouter streams={streams} tags={tags} games={games} following={following} packs={packs} users={users} user={user} doPayment={PayingFunction} doFollowing={FollowFunction} doChatting={ChatFunction} doLogIn={LogInFunction} doSignIn={SignInFunction} doLogOut={LogOutFunction} GetUser={GetUser} doStreaming={doStreaming} />;
+    return <AppRouter streams={streams} tags={tags} games={games} following={following} packs={packs} users={users} user={user} doPayment={PayingFunction} doFollowing={FollowFunction} doChatting={ChatFunction} doLogIn={LogInFunction} doSignIn={SignInFunction} doLogOut={LogOutFunction} GetUser={GetUser} doStreaming={doStreaming} doViewersDivision = {DivisiónAproximada}   reloadGameViewers={ReloadViewers}/>;
 };
 
 export default App;

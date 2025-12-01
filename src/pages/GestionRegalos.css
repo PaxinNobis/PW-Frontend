@@ -14,10 +14,7 @@
 
 /* Contenedor Principal con efecto Glassmorphism */
 .card {
-  background: var(--glass-bg) !important;
   /* Override Bootstrap */
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   border-radius: 16px;
@@ -39,7 +36,7 @@
 }
 
 .card-body {
-  padding: 2rem;
+  padding: 1rem;
   background: transparent !important;
 }
 
@@ -224,7 +221,6 @@
 .alert {
   border-radius: 10px;
   border: none;
-  backdrop-filter: blur(5px);
 }
 
 .alert-warning {

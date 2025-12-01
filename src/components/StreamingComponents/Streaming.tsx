@@ -12,6 +12,7 @@ interface StreamingProps {
     doFollowing: (user: User) => void
     doChatting: (message: Message, stream: Stream) => void
     GetUser: () => User | null
+    doViewersDivision : (dividendo : number, divisor : number, decimas : number) => string
 }
 import { useState, useEffect } from "react"
 import { API_CONFIG, getAuthHeaders } from "../../config/api.config"
@@ -24,7 +25,7 @@ const Streaming = (props: StreamingProps) => {
 
     // Try to find in props first
     const propStream = props.streams.find((stream: Stream) =>
-        stream.user.name.toUpperCase() === name?.toUpperCase()
+        stream.user.name === name
     );
 
     useEffect(() => {
@@ -172,7 +173,7 @@ const Streaming = (props: StreamingProps) => {
     return (
         <div className="d-flex vh-100 no-scroll">
             <div id="Middle-Page">
-                <StreamingSection GetUser={props.GetUser} stream={localStream} following={props.following} doFollowing={props.doFollowing}></StreamingSection>
+                <StreamingSection doViewersDivision = {props.doViewersDivision} GetUser={props.GetUser}stream={localStream} following = {props.following} doFollowing={props.doFollowing}></StreamingSection>
             </div>
             <div id="Right-Page">
                 {localStream.user.online ? (

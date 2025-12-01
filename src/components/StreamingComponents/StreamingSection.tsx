@@ -16,14 +16,10 @@ interface StreamingSectionProps {
     following: User[];
     GetUser: () => User | null
     doFollowing: (user: User) => void
+    doViewersDivision : (dividendo : number, divisor : number, decimas : number) => string
 }
 
 const StreamingSection = (props: StreamingSectionProps) => {
-    const DivisiónAproximada = (dividendo: number, divisor: number, decimas: number) => {
-        const cociente = dividendo / divisor;
-        return (cociente.toFixed(decimas))
-    }
-
     const [Issighting, SetIssighting] = useState<boolean>(true)
     const [loyaltyLevels, setLoyaltyLevels] = useState<LoyaltyLevel[]>([]);
     const [currentPoints, setCurrentPoints] = useState<number>(0);
@@ -235,7 +231,9 @@ const StreamingSection = (props: StreamingSectionProps) => {
                         <div>
                             <h3 className="TextBox">{props.stream.user.name}</h3>
                             <h4 className="TextBox my-0">{props.stream.title}</h4>
-                            <h4 className="TextBox m-0">{props.stream.game.name}</h4>
+                            <Link to={`/game/${props.stream.game.name}`}>
+                                <h4 className="TextBox m-0 clickable_text">{ props.stream.game.name }</h4>
+                            </Link>
                         </div>
                     </div>
                     <div className="text-start ">
@@ -246,7 +244,7 @@ const StreamingSection = (props: StreamingSectionProps) => {
                                 <FollowButton doFollowing={props.doFollowing} isFollowing={isFollowing()} user={props.stream.user}></FollowButton>
                         }
                         <div className="ms-4">
-                            <span className="badge bg-danger">{props.stream.viewersnumber >= 1000000 ? DivisiónAproximada(props.stream.viewersnumber, 1000000, 1) + " M " : props.stream.viewersnumber >= 1000 ? DivisiónAproximada(props.stream.viewersnumber, 1000, 1) + " K " : props.stream.viewersnumber}viewers</span>
+                            <span className="badge bg-danger">{props.stream.viewersnumber >= 1000000? props.doViewersDivision(props.stream.viewersnumber,1000000,1) + " M ": props.stream.viewersnumber >= 1000? props.doViewersDivision(props.stream.viewersnumber,1000,1) + " K ":props.stream.viewersnumber}viewers</span>
                         </div>
                     </div>
                 </div>

@@ -17,6 +17,7 @@ import Nosotros from '../components/Terms_AboutUsComponents/Nosotros';
 import Streaming from '../components/StreamingComponents/Streaming';
 import CardInput from '../components/PayingComponents/CardInput';
 import PaymentReturn from '../components/PayingComponents/PaymentReturn';
+import GameProfile from '../components/ExploreComponents/GameProfile';
 
 import Profile from '../components/ProfileComponents/Profile';
 import PrivateRoute from './PrivateRoute';
@@ -60,7 +61,9 @@ interface AppRouterProps {
 	doLogIn: (email: string, pass: string) => Promise<number>
 	doSignIn: (name: string, email: string, pass: string) => Promise<number>
 	doLogOut: () => void
+	doViewersDivision : (dividendo : number, divisor : number, decimas : number) => string
 	doChatting: (message: Message, stream: Stream) => void
+	reloadGameViewers : (viewers : number, game : Game)  => void 
 	doStreaming: (user: string, title: string, game: string, link: string) => Promise<void>
 	GetUser: () => User | null
 }
@@ -73,21 +76,22 @@ const AppRouter = (props: AppRouterProps) => {
 				<NavBar doLogOut={props.doLogOut} user={props.user} packs={props.packs}></NavBar>
 				<div className="d-flex pages vh-100 no-scroll">
 					<div className="col-2" id="Sidebar">
-						<SideBar streams={props.streams} following={props.following}></SideBar>
+						<SideBar doViewersDivision={props.doViewersDivision} streams = {props.streams} following = {props.following}></SideBar>
 					</div>
 					<div className="col-10 d-flex flex-column" id="Main-Page">
 						<Routes>
 							<Route path="/" element={<Home recommendedstreams={props.streams} />} />
 							<Route path="/exploretags" element={<ExploreTags tags={props.tags} />} />
 							<Route path="/exploretags/:name" element={<ExploreGames games={props.games} />} />
-							<Route path="/search/:name" element={<Search users={props.users} streams={props.streams} />} />
-							<Route path="/streaming/:name" element={<Streaming doFollowing={props.doFollowing} streams={props.streams} following={props.following} GetUser={props.GetUser} doChatting={props.doChatting} />} />
-							<Route path="/TyC" element={<TyC />} />
+							<Route path="/search/:name" element={<Search games={props.games} users={props.users}streams={props.streams}/>}/>
+							<Route path="/streaming/:name" element={<Streaming doViewersDivision={props.doViewersDivision} doFollowing={props.doFollowing} streams={props.streams} following = {props.following} GetUser={props.GetUser} doChatting={props.doChatting}/>} />
+							<Route path="/TyC" element={<TyC/>}/>
 							<Route path="/nosotros" element={<Nosotros GetUser={props.GetUser} />} />
 							<Route path="/login" element={<Login doLogIn={props.doLogIn} />} />
 							<Route path="/signin" element={<Signin doSignIn={props.doSignIn} />} />
 							<Route path="/payment" element={<CardInput GetUser={props.GetUser} doPayment={props.doPayment} />} />
 							<Route path="/payment/return" element={<PaymentReturn />} />
+							<Route path="/game/:name" element={<GameProfile reloadGameViewers={props.reloadGameViewers} doViewersDivision={props.doViewersDivision} games={props.games} streams={props.streams}/>}/>
 
 							<Route path="/profile/:identifier" element={<Profile doFollowing={props.doFollowing} following={props.following} users={props.users} GetUser={props.GetUser} />} />
 							<Route path="/profile/:identifier" element={<Profile doFollowing={props.doFollowing} following={props.following} users={props.users} GetUser={props.GetUser} />} />

@@ -4,6 +4,7 @@ import type { Stream } from "../../GlobalObjects/Objects_DataTypes"
 interface SideBarProps {
     streams: Stream[]
     following: User[]
+    doViewersDivision : (dividendo : number, divisor : number, decimas : number) => string
 }
 const SideBar = (props: SideBarProps) => {
     const streamsfollowed = props.streams.filter((stream: Stream) => {
@@ -17,7 +18,7 @@ const SideBar = (props: SideBarProps) => {
             {
                 streamsfollowed.map((stream: Stream, index: number) => {
                     return (
-                        <StreamBox key={`followed-${stream.id}-${index}`} stream={stream}></StreamBox>
+                        <StreamBox doViewersDivision={props.doViewersDivision} stream = {stream}></StreamBox>
                     )
                 })
             }
@@ -25,7 +26,7 @@ const SideBar = (props: SideBarProps) => {
             {
                 props.streams.filter(s => s.user.online).map((stream: Stream, index: number) => {
                     return (
-                        <StreamBox key={`recommended-${stream.id}-${index}`} stream={stream}></StreamBox>
+                        <StreamBox doViewersDivision={props.doViewersDivision} stream = {stream}></StreamBox>
                     )
                 })
             }

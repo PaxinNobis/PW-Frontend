@@ -19,7 +19,9 @@ const GameCard = (props: GameCardProps) => {
         <div className="col-6 col-sm-4 col-md-3 col-lg-2 mb-4">
             <div className="card">
                 <div>
-                    <img src={props.game.photo} className="card-img-top clickable"/>
+                    <Link to={`/game/${props.game.name}`}>
+                        <img src={props.game.photo} className="card-img-top clickable"/>
+                    </Link>
                 </div>
                 <div className="card-body">
                     <h6 className="card-title fw-bold">{props.game.name}</h6>
