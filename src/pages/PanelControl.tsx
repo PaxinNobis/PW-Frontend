@@ -206,7 +206,7 @@ const PanelControl = (props: PanelControlProps) => {
     if (isLive) {
       // Si está en vivo, detener stream
       try {
-        const response = await stopStream();
+        await stopStream();
 
         // Actualizar estado local a offline
         setUserStream({ ...userStream, isLive: false } as any);

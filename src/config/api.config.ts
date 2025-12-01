@@ -1,7 +1,7 @@
 // Configuración centralizada de la API
 
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_URL || 'https://astrotv.onrender.com',
+  BASE_URL: 'http://localhost:8080',
   ENDPOINTS: {
     // Auth
     AUTH_REGISTER: '/api/auth/register',
@@ -24,10 +24,12 @@ export const API_CONFIG = {
     STREAMER_STATS: '/api/streamer/stats',
     STREAMER_GIFTS: (streamerId: string) => `/api/streamer/${streamerId}/gifts`,
     STREAMER_LOYALTY_LEVELS: (streamerId: string) => `/api/streamer/${streamerId}/loyalty-levels`,
+    STREAMER_LOYALTY_TEMPLATES: '/api/streamer/loyalty-templates',
 
     // Panel
     PANEL_ANALYTICS: '/api/panel/analytics',
     PANEL_GIFTS: '/api/panel/gifts',
+    PANEL_GIFT: (id: string) => `/api/panel/gifts/${id}`,
     PANEL_LOYALTY_LEVELS: '/api/panel/loyalty-levels',
 
     // Gifts

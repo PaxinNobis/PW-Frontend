@@ -197,7 +197,7 @@ const PointsBar = ({ streamerId }: PointsBarProps) => {
                                         <div className="d-flex flex-column align-items-end ms-2">
                                             <span className="badge bg-warning text-dark rounded-pill mb-1 gift-price-badge">
                                                 <span className="fs-5 fw-bold">{gift.costo}</span>
-                                                <img src="/assets/icons/AstroCoin.png" alt="AstroCoin" className="astro-coin-icon" />
+                                                <img src="https://i.imgur.com/QQfiDQ1.png" alt="AstroCoin" className="astro-coin-icon" />
                                             </span>
                                             <span className="badge bg-info text-dark rounded-pill">
                                                 +{gift.puntos} pts

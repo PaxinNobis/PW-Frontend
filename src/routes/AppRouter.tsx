@@ -1,7 +1,7 @@
 // routes/AppRouter.tsx
 // Configuración de todas las rutas de la aplicación
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import { useEffect } from 'react';
 import NavBar from '../components/NavBarComponents/NavBar';
@@ -67,8 +67,8 @@ interface AppRouterProps {
 
 const AppRouter = (props: AppRouterProps) => {
 	return (
-		<BrowserRouter>
-			<AuthProvider basename='/AstroTv'>
+		<BrowserRouter basename='/PW-Frontend'>
+			<AuthProvider>
 				<AuthSync user={props.user} />
 				<NavBar doLogOut={props.doLogOut} user={props.user} packs={props.packs}></NavBar>
 				<div className="d-flex pages vh-100 no-scroll">
@@ -77,7 +77,7 @@ const AppRouter = (props: AppRouterProps) => {
 					</div>
 					<div className="col-10 d-flex flex-column" id="Main-Page">
 						<Routes>
-							<Route path="/Home" element={<Home recommendedstreams={props.streams} />} />
+							<Route path="/" element={<Home recommendedstreams={props.streams} />} />
 							<Route path="/exploretags" element={<ExploreTags tags={props.tags} />} />
 							<Route path="/exploretags/:name" element={<ExploreGames games={props.games} />} />
 							<Route path="/search/:name" element={<Search users={props.users} streams={props.streams} />} />
@@ -93,6 +93,9 @@ const AppRouter = (props: AppRouterProps) => {
 							<Route path="/profile/:identifier" element={<Profile doFollowing={props.doFollowing} following={props.following} users={props.users} GetUser={props.GetUser} />} />
 							<Route path="/panelcreador" element={<PrivateRoute><PanelControl GetUser={props.GetUser} doChatting={props.doChatting} doStreaming={props.doStreaming} games={props.games} /></PrivateRoute>} />
 							<Route path="/gestion-regalos" element={<PrivateRoute><GestionRegalos /></PrivateRoute>} />
+
+							{/* Redirección explícita de /Home a / */}
+							<Route path="/Home" element={<Navigate to="/" replace />} />
 
 							{/* Ruta 404 - redirige al home */}
 							<Route path="*" element={<Home recommendedstreams={props.streams} />} />

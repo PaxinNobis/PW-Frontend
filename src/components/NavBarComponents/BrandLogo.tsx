@@ -16,7 +16,7 @@ import "./BrandLogo.css";
 const BrandLogo = () => {
 	const navigate = useNavigate()
 	const handleReload = () => {
-		navigate("/Home")
+		navigate("/")
 	}
 	return (
 		<h1 onClick={handleReload} className="title"><span className="a-nave ">A</span>stroTV</h1>

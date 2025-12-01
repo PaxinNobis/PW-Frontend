@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import './ConfiguracionNiveles.css';
-import { getLoyaltyLevels, updateLoyaltyLevels, type LoyaltyLevel } from '../services/loyalty.service';
-import ConfirmationModal from '../components/Shared/ConfirmationModal';
+import { getLoyaltyLevels, updateLoyaltyLevels, getLoyaltyTemplates, type LoyaltyLevel } from '../services/loyalty.service';
 
 const ConfiguracionNiveles = () => {
   const [niveles, setNiveles] = useState<LoyaltyLevel[]>([]);
@@ -10,37 +9,43 @@ const ConfiguracionNiveles = () => {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [levelToDelete, setLevelToDelete] = useState<number | null>(null);
-
   useEffect(() => {
-    loadLevels();
+    loadData();
   }, []);
 
-  const loadLevels = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
-      const data = await getLoyaltyLevels();
-      // Ensure we have at least 5 levels or use the fetched ones
-      if (data && data.length > 0) {
-        // Map to ensure all fields exist
-        const mapped = data.map((l, index) => ({
-          id: l.id || index + 1,
-          nombre: l.nombre || '',
-          puntosRequeridos: l.puntosRequeridos || 0,
-          recompensa: l.recompensa || ''
-        }));
-        setNiveles(mapped);
+      const [userLevelsData, templateData] = await Promise.all([
+        getLoyaltyLevels(),
+        getLoyaltyTemplates()
+      ]);
+
+      if (templateData && templateData.length > 0) {
+        // Merge template data with user's saved points/rewards
+        const mergedLevels = templateData.map((templateLevel, index) => {
+          // Try to find matching user level by ID or index
+          // Assuming template IDs are 1-10 and user IDs might match or be sequential
+          const userLevel = userLevelsData.find(ul => ul.id === templateLevel.id) || userLevelsData[index];
+
+          return {
+            ...templateLevel,
+            // Use user's points/reward if available, otherwise default to template
+            puntosRequeridos: userLevel ? userLevel.puntosRequeridos : templateLevel.puntosRequeridos,
+            recompensa: userLevel ? userLevel.recompensa : templateLevel.recompensa,
+            // Always use template name and image
+            nombre: templateLevel.nombre,
+            image: templateLevel.image
+          };
+        });
+        setNiveles(mergedLevels);
       } else {
-        // Default levels if none exist
-        setNiveles([]);
+        setError('No se pudo cargar la plantilla de niveles del sistema solar.');
       }
+
     } catch (err) {
-      console.error('Error loading levels:', err);
-      setError('No se pudieron cargar los niveles. Usando valores por defecto.');
-      // Fallback defaults
-      setNiveles([]);
+      console.error('Error loading data:', err);
+      setError('No se pudieron cargar los datos.');
     } finally {
       setLoading(false);
     }
@@ -50,31 +55,12 @@ const ConfiguracionNiveles = () => {
     setNiveles(prev => prev.map(n => n.id === id ? { ...n, [field]: value } : n));
   };
 
-  const handleAddLevel = () => {
-    const newId = niveles.length > 0 ? Math.max(...niveles.map(n => n.id || 0)) + 1 : 1;
-    setNiveles([...niveles, { id: newId, nombre: '', puntosRequeridos: 0, recompensa: '' }]);
-  };
-
-  const handleDeleteClick = (id: number) => {
-    setLevelToDelete(id);
-    setIsModalOpen(true);
-  };
-
-  const confirmDelete = () => {
-    if (levelToDelete !== null) {
-      setNiveles(niveles.filter(n => n.id !== levelToDelete));
-      setLevelToDelete(null);
-    }
-  };
-
   const saveAllLevels = async () => {
     try {
       setSaving(true);
       setError(null);
       setSuccessMessage(null);
 
-      // Send levels without ID if backend doesn't need it, or just send as is.
-      // The interface has optional ID.
       await updateLoyaltyLevels(niveles);
 
       setSuccessMessage('Configuración guardada exitosamente.');
@@ -93,14 +79,11 @@ const ConfiguracionNiveles = () => {
 
   return (
     <div className="card config-niveles-card">
-      <div className="card-header d-flex justify-content-between align-items-center">
+      <div className="card-header">
         <div>
-          <h3>Configuración de Niveles de Lealtad</h3>
-          <p className="text-muted mb-0">Define los niveles y recompensas para tus seguidores más fieles</p>
+          <h3>Niveles de Lealtad: Sistema Solar</h3>
+          <p className="text-muted mb-0">Configura los puntos y recompensas para cada nivel planetario.</p>
         </div>
-        <button className="btn btn-outline-primary btn-sm" onClick={handleAddLevel}>
-          <i className="bi bi-plus-lg me-1"></i> Agregar Nivel
-        </button>
       </div>
 
       <div className="card-body">
@@ -111,23 +94,26 @@ const ConfiguracionNiveles = () => {
           <table className="table table-hover align-middle">
             <thead>
               <tr>
+                <th style={{ width: '60px' }}>Icono</th>
                 <th>Nombre del Nivel</th>
                 <th>Puntos Requeridos</th>
                 <th>Recompensa</th>
-                <th className="actions-column">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {niveles.map((nivel) => (
                 <tr key={nivel.id || Math.random()}>
                   <td>
-                    <input
-                      type="text"
-                      className="form-control form-control-sm"
-                      value={nivel.nombre}
-                      onChange={(e) => handleUpdate(nivel.id!, 'nombre', e.target.value)}
-                      placeholder="Nombre del nivel"
-                    />
+                    {nivel.image ? (
+                      <img src={nivel.image} alt={nivel.nombre} className="rounded-circle" width="40" height="40" />
+                    ) : (
+                      <div className="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white" style={{ width: '40px', height: '40px' }}>
+                        {nivel.nombre.charAt(0)}
+                      </div>
+                    )}
+                  </td>
+                  <td>
+                    <span className="fw-bold">{nivel.nombre}</span>
                   </td>
                   <td>
                     <input
@@ -144,24 +130,15 @@ const ConfiguracionNiveles = () => {
                       className="form-control form-control-sm"
                       value={nivel.recompensa}
                       onChange={(e) => handleUpdate(nivel.id!, 'recompensa', e.target.value)}
-                      placeholder="Recompensa"
+                      placeholder="Recompensa (Opcional)"
                     />
-                  </td>
-                  <td>
-                    <button
-                      className="btn btn-outline-danger btn-sm"
-                      onClick={() => handleDeleteClick(nivel.id!)}
-                      title="Eliminar nivel"
-                    >
-                      <i className="bi bi-trash"></i>
-                    </button>
                   </td>
                 </tr>
               ))}
               {niveles.length === 0 && (
                 <tr>
                   <td colSpan={4} className="text-center py-4 text-muted">
-                    No hay niveles configurados. Agrega uno nuevo.
+                    No se encontraron niveles.
                   </td>
                 </tr>
               )}
@@ -172,7 +149,7 @@ const ConfiguracionNiveles = () => {
         <div className="d-flex justify-content-between align-items-center mt-4">
           <div className="text-muted small">
             <i className="bi bi-info-circle me-2"></i>
-            Los cambios se aplicarán inmediatamente a todos los usuarios.
+            Los nombres e imágenes de los niveles son fijos.
           </div>
           <button
             className="btn btn-save px-4"
@@ -192,16 +169,6 @@ const ConfiguracionNiveles = () => {
           </button>
         </div>
       </div>
-
-      <ConfirmationModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onConfirm={confirmDelete}
-        title="Eliminar Nivel"
-        message="¿Estás seguro de que quieres eliminar este nivel?"
-        confirmText="Eliminar"
-        confirmColor="danger"
-      />
     </div>
   );
 };

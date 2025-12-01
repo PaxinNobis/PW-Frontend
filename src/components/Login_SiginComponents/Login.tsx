@@ -26,7 +26,7 @@ const Login = (props: LoginProps) => {
 		SetError("");
 		try {
 			await props.doLogIn(email, pass);
-			navigate("/Home");
+			navigate("/");
 			window.location.reload();
 		} catch (err) {
 			if (err instanceof Error) {

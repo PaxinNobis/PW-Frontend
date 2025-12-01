@@ -17,7 +17,7 @@ const UserIcon = (props: UserIconProps) => {
   const handleLogout = () => {
     try {
       props.doLogOut()
-      navigate("/Home")
+      navigate("/")
     } catch (err) {
       if (err instanceof Error) {
 

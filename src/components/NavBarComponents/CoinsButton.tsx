@@ -10,7 +10,7 @@ const CoinsButton = (props: CoinsButtonProps) => {
 	return (
 		<div className="dropdown">
 			<button className="carousel-button d-flex justify-content-center align-items-center border-0" id="userDropdown" data-bs-toggle="dropdown">
-				<img src="/assets/icons/AstroCoin.png" alt="AstroCoin" width="90" height="90" className="coin-icon-large" />
+				<img src="https://i.imgur.com/QQfiDQ1.png" alt="AstroCoin" width="90" height="90" className="coin-icon-large" />
 			</button>
 			<ul className="dropdown-menu dropdown-menu-end astro-dropdown" aria-labelledby="userDropdown">
 				<li className="text-center mb-3"><h5 className="TextBox fw-bold">Tienda de AstroCoins</h5></li>
@@ -22,7 +22,7 @@ const CoinsButton = (props: CoinsButtonProps) => {
 									<h6 className="TextBox my-1 fw-bold">{pack.name}</h6>
 									<div className="d-flex align-items-center">
 										<span className="TextBox fs-5 me-2">{pack.value}</span>
-										<img src="/assets/icons/AstroCoin.png" alt="AstroCoin" width="24" height="24" className="coin-icon-small" />
+										<img src="https://i.imgur.com/QQfiDQ1.png" alt="AstroCoin" width="24" height="24" className="coin-icon-small" />
 									</div>
 								</div>
 								<div className="d-flex flex-column text-end align-items-end mx-2">
@@ -39,7 +39,7 @@ const CoinsButton = (props: CoinsButtonProps) => {
 				}
 				<li><hr className="dropdown-divider" /></li>
 				<li className="astro-pack-item justify-content-center cursor-pointer" onClick={() => navigate("/payment")}>
-					<span className="TextBox fw-bold">Ver todos los paquetes</span>
+					<span className="TextBox fw-bold">Elige la cantidad de tus monedas!</span>
 				</li>
 			</ul>
 		</div>

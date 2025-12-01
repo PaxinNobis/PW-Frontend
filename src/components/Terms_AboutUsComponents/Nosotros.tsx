@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { Link } from "react-router-dom"
 
 import "./Nosotros.css"
 import "../../GlobalObjects/Animations.css"
@@ -88,9 +89,9 @@ const Nosotros = (props: NosotrosProps) => {
                                     <div className="card-body p-4 text-center">
                                         <h2 className="h4 mb-3">Únete a Nuestra Comunidad</h2>
                                         <p>Miles de streamers y espectadores ya forman parte de StreamPlatform</p>
-                                        <a href="/signup" className="btn page-button border-0 btn-lg mt-2">
+                                        <Link to="/signin" className="btn page-button border-0 btn-lg mt-2">
                                             Registrarse Ahora
-                                        </a>
+                                        </Link>
                                     </div>
                                 </div>
                             )}

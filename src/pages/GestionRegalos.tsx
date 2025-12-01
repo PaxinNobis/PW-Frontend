@@ -113,14 +113,14 @@ const GestionRegalos = () => {
                   <input
                     type="text"
                     className="form-control"
-                    placeholder="Ej: 🌟 Estrella Dorada"
+                    placeholder="Ej: Estrella Dorada"
                     value={formData.nombre}
                     onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                     required
                   />
                 </div>
                 <div className="col-md-3">
-                  <label className="form-label">Costo (DogeCoins)</label>
+                  <label className="form-label">Costo (AstroCoins)</label>
                   <input
                     type="number"
                     className="form-control"

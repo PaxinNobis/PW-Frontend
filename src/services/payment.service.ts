@@ -4,6 +4,7 @@ import type {
   CoinPack,
   TransactionHistoryResponse,
   BalanceResponse,
+  CheckoutSessionRequest,
 } from '../types/api';
 import { API_CONFIG, getAuthHeaders } from '../config/api.config';
 import { apiGet, apiPost } from '../utils/api.utils';
@@ -20,7 +21,7 @@ export const getCoinPacks = async (): Promise<CoinPack[]> => {
 /**
  * Crear sesión de pago con Stripe
  */
-export const createCheckoutSession = async (data: { coinPackId?: string; amount?: number }): Promise<{ clientSecret?: string; url?: string }> => {
+export const createCheckoutSession = async (data: CheckoutSessionRequest): Promise<{ clientSecret?: string; url?: string }> => {
   const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PAYMENT_CHECKOUT}`;
   return apiPost(url, data, getAuthHeaders());
 };

@@ -20,6 +20,7 @@ import * as profileService from "./services/profile.service";
 import * as streamerService from "./services/streamer.service";
 
 const App = () => {
+    console.log("🚀 App Version: 1.0.1 - Deployment Fixes Applied (Trailing Slash + API URL)");
     const [user, setUser] = useState<User | null>(null);
     const [streams, setStreams] = useState<Stream[]>([]);
     const [tags, setTags] = useState<GameTag[]>([]);
@@ -122,7 +123,11 @@ const App = () => {
             console.log("Sesión de pago creada, redirigiendo a Stripe...");
 
             // Redirigir a Stripe Checkout
-            window.location.href = session.url;
+            if (session.url) {
+                window.location.href = session.url;
+            } else {
+                console.error("No se recibió URL de redirección de Stripe");
+            }
 
             // Nota: El webhook de Stripe actualizará las monedas automáticamente
             // cuando el pago se complete
@@ -448,6 +453,12 @@ const App = () => {
                 const games = Array.isArray(gamesData) ? gamesData : (gamesData as any)?.games || [];
                 const packs = Array.isArray(packsData) ? packsData : (packsData as any)?.coinPacks || (packsData as any)?.packs || [];
 
+                // Si no hay streams en el backend, forzar carga de datos locales (para demo)
+                if (streams.length === 0) {
+                    console.warn("Backend devolvió 0 streams. Usando datos locales para demostración.");
+                    throw new Error("Empty backend streams - Fallback to local data");
+                }
+
                 // Convertir datos del backend al formato local
                 const convertedStreams = streams.map((s: any) => ({
                     id: parseInt(s.id) || 0,
@@ -598,26 +609,28 @@ const App = () => {
             } catch (backendError) {
                 console.warn("Error al cargar desde backend, usando datos locales");
                 // Fallback a datos locales si el backend falla
-                const response1 = await fetch("/data/streams.json");
+                const baseUrl = import.meta.env.BASE_URL;
+                const response1 = await fetch(`${baseUrl}data/streams.json`);
                 const data1 = await response1.json();
                 setStreams(data1);
-                const response2 = await fetch("/data/tags.json");
+                const response2 = await fetch(`${baseUrl}data/tags.json`);
                 const data2 = await response2.json();
                 setTags(data2);
-                const response3 = await fetch("/data/games.json");
+                const response3 = await fetch(`${baseUrl}data/games.json`);
                 const data3 = await response3.json();
                 setGames(data3);
-                const response4 = await fetch("/data/following.json");
+                const response4 = await fetch(`${baseUrl}data/following.json`);
                 const data4 = await response4.json();
                 setFollowing(data4);
-                const response5 = await fetch("/data/packs.json");
+                const response5 = await fetch(`${baseUrl}data/packs.json`);
                 const data5 = await response5.json();
                 setPacks(data5);
                 console.log("Datos locales cargados como fallback");
             }
 
             // Cargar datos locales que no están en el backend aún
-            const response6 = await fetch("/data/users.json");
+            const baseUrl = import.meta.env.BASE_URL;
+            const response6 = await fetch(`${baseUrl}data/users.json`);
             const data6 = await response6.json();
             setUsers(data6);
             // Carga de niveles y medallas no utilizada eliminada
@@ -659,7 +672,7 @@ const App = () => {
 
         // Escuchar evento de actualización de monedas
         const handleCoinsUpdate = (event: Event) => {
-            refreshUserData();
+            // refreshUserData(); // Evitar recargar todos los streams para no reiniciar el iframe
 
             // Actualización optimista para feedback inmediato si se proporciona el costo
             const customEvent = event as CustomEvent;

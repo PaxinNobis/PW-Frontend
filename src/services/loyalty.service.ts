@@ -6,6 +6,7 @@ export interface LoyaltyLevel {
     nombre: string;
     puntosRequeridos: number;
     recompensa: string;
+    image?: string; // URL de la imagen del nivel (opcional)
 }
 
 export interface LoyaltyLevelsResponse {
@@ -28,6 +29,32 @@ export const getLoyaltyLevels = async (): Promise<LoyaltyLevel[]> => {
         return [];
     } catch (error) {
         console.error('Error fetching loyalty levels:', error);
+        throw error;
+    }
+};
+
+/**
+ * Obtener plantillas de niveles de lealtad (ej. Sistema Solar)
+ */
+export const getLoyaltyTemplates = async (): Promise<LoyaltyLevel[]> => {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.STREAMER_LOYALTY_TEMPLATES}`;
+    try {
+        // The backend returns { success: boolean, templates: [{ id, level, foto }] }
+        const response = await apiGet<any>(url, getAuthHeaders());
+
+        if (response && response.templates && Array.isArray(response.templates)) {
+            return response.templates.map((t: any) => ({
+                id: t.id,
+                nombre: t.level, // Map 'level' to 'nombre'
+                image: t.foto,   // Map 'foto' to 'image'
+                puntosRequeridos: 0, // Default
+                recompensa: ''       // Default
+            }));
+        }
+
+        return [];
+    } catch (error) {
+        console.error('Error fetching loyalty templates:', error);
         throw error;
     }
 };

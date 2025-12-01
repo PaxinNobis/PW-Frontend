@@ -77,7 +77,7 @@ const TyC = () => {
 							{/* Imagen ilustrativa */}
 							<div className="text-center my-4">
 								<img
-									src="/assets/img_tyc.png"
+									src={`${import.meta.env.BASE_URL}assets/img_tyc.png`}
 									alt="Términos y Condiciones"
 									className="img-fluid rounded shadow"
 									style={{ maxWidth: '600px' }}
