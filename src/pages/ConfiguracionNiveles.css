@@ -16,6 +16,10 @@
     max-width: 1200px;
     margin: 0 auto;
 }
+.medal{
+    transform: scale(1);
+    image-rendering: pixelated;
+}
 
 /* Contenedor Principal con efecto Glassmorphism */
 .config-niveles-card {

@@ -105,9 +105,9 @@ const ConfiguracionNiveles = () => {
                 <tr key={nivel.id || Math.random()}>
                   <td>
                     {nivel.image ? (
-                      <img src={nivel.image} alt={nivel.nombre} className="rounded-circle" width="40" height="40" />
+                      <img src={nivel.image} alt={nivel.nombre} className="rounded-circle medal"/>
                     ) : (
-                      <div className="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white" style={{ width: '40px', height: '40px' }}>
+                      <div className="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white">
                         {nivel.nombre.charAt(0)}
                       </div>
                     )}
